@@ -55,5 +55,5 @@ func (h *UpdateProfileHandler) Handle(
 
 	result := dto.FromUser(u)
 
-	return &result, nil
+	return result, nil
 }

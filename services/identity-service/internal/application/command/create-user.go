@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/s7venking/ticket-box/identity/internal/application/dto"
 	"github.com/s7venking/ticket-box/identity/internal/domain/user"
 )
 
@@ -34,7 +35,7 @@ func NewCreateUserHandler(
 func (h *CreateUserHandler) Handle(
 	ctx context.Context,
 	cmd CreateUserCommand,
-) (*user.User, error) {
+) (*dto.UserDTO, error) {
 	exists, err := h.userRepository.ExistsByEmail(
 		ctx,
 		cmd.Email,
@@ -68,5 +69,5 @@ func (h *CreateUserHandler) Handle(
 		return nil, err
 	}
 
-	return u, nil
+	return dto.FromUser(u), nil
 }

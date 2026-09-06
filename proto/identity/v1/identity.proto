@@ -1,0 +1,112 @@
+
+syntax = "proto3";
+
+package identity.v1;
+
+option go_package = "github.com/s7venking/ticket-box/gen/identity/v1;identityv1";
+
+service IdentityService {
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+
+  rpc GetUserById(GetUserByIdRequest) returns (GetUserByIdResponse);
+
+  rpc GetUserByEmail(GetUserByEmailRequest) returns (GetUserByEmailResponse);
+
+  rpc UpdateUserProfile(UpdateUserProfileRequest) returns (UpdateUserProfileResponse);
+
+  rpc ActivateUser(ActivateUserRequest) returns (ActivateUserResponse);
+
+  rpc DeactivateUser(DeactivateUserRequest) returns (DeactivateUserResponse);
+}
+
+// =========================
+// User
+// =========================
+
+message User {
+  string id = 1;
+  string email = 2;
+  string full_name = 3;
+  string phone = 4;
+  bool is_active = 5;
+  string created_at = 6;
+  string updated_at = 7;
+}
+
+// =========================
+// Create User
+// =========================
+
+message CreateUserRequest {
+  string email = 1;
+  string password = 2;
+  string full_name = 3;
+  string phone = 4;
+}
+
+message CreateUserResponse {
+  User user = 1;
+}
+
+// =========================
+// Get User By ID
+// =========================
+
+message GetUserByIdRequest {
+  string id = 1;
+}
+
+message GetUserByIdResponse {
+  User user = 1;
+}
+
+// =========================
+// Get User By Email
+// =========================
+
+message GetUserByEmailRequest {
+  string email = 1;
+}
+
+message GetUserByEmailResponse {
+  User user = 1;
+}
+
+// =========================
+// Update User Profile
+// =========================
+
+message UpdateUserProfileRequest {
+  string id = 1;
+  string full_name = 2;
+  string phone = 3;
+}
+
+message UpdateUserProfileResponse {
+  User user = 1;
+}
+
+// =========================
+// Activate User
+// =========================
+
+message ActivateUserRequest {
+  string id = 1;
+}
+
+message ActivateUserResponse {
+  User user = 1;
+}
+
+// =========================
+// Deactivate User
+// =========================
+
+message DeactivateUserRequest {
+  string id = 1;
+}
+
+message DeactivateUserResponse {
+  User user = 1;
+}
+

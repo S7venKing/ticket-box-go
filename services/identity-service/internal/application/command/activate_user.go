@@ -50,5 +50,5 @@ func (h *ActivateUserHandler) Handle(
 
 	result := dto.FromUser(u)
 
-	return &result, nil
+	return result, nil
 }

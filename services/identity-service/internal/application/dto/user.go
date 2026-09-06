@@ -18,8 +18,8 @@ type UserDTO struct {
 	UpdatedAt time.Time
 }
 
-func FromUser(u *user.User) UserDTO {
-	return UserDTO{
+func FromUser(u *user.User) *UserDTO {
+	return &UserDTO{
 		ID:        u.ID,
 		Email:     u.Email,
 		FullName:  u.FullName,
