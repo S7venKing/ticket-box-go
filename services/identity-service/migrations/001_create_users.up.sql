@@ -1,8 +1,6 @@
-CREATE DATABASE identity_db
-    CHARACTER SET utf8mb4
-    COLLATE utf8mb4_unicode_ci;
-
-CREATE TABLE users (
+-- Runs against the identity_db schema (created by the MySQL container /
+-- provisioning, not by a migration).
+CREATE TABLE IF NOT EXISTS users (
     id CHAR(36) NOT NULL,
 
     email VARCHAR(255) NOT NULL,
