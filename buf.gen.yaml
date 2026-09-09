@@ -1,5 +1,8 @@
 version: v2
 
+# Run from the repo root:  buf generate
+# paths=source_relative + module root proto/  =>  gen/identity/v1/identity.pb.go
+# Do NOT add `clean: true`: gen/ also holds go.mod / go.sum.
 plugins:
   - local: protoc-gen-go
     out: gen

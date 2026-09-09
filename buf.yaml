@@ -1,0 +1,14 @@
+version: v2
+
+# proto/ is the module root: file paths are relative to it, so
+# proto/identity/v1/identity.proto is "identity/v1/identity.proto" for buf.
+modules:
+  - path: proto
+
+lint:
+  use:
+    - STANDARD
+
+breaking:
+  use:
+    - FILE

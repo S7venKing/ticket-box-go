@@ -1,10 +1,12 @@
-
 syntax = "proto3";
 
 package identity.v1;
 
-option go_package = "github.com/s7venking/ticket-box/gen/identity/v1;identityv1";
+option go_package = "github.com/S7venKing/ticket-box-go/gen/identity/v1;identityv1";
 
+// IdentityService owns user accounts.
+// It is an internal service: authentication/authorization of end users is
+// enforced by api-gateway, callers here are trusted services.
 service IdentityService {
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
 
@@ -23,6 +25,8 @@ service IdentityService {
 // User
 // =========================
 
+// User is the public representation of an account.
+// Credentials (password, password hash) are never part of this message.
 message User {
   string id = 1;
   string email = 2;
@@ -39,6 +43,7 @@ message User {
 
 message CreateUserRequest {
   string email = 1;
+  // Plaintext password. Only ever hashed by the application layer; never logged.
   string password = 2;
   string full_name = 3;
   string phone = 4;
@@ -109,4 +114,3 @@ message DeactivateUserRequest {
 message DeactivateUserResponse {
   User user = 1;
 }
-
