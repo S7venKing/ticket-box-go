@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package identity.v1;
 
+import "google/protobuf/timestamp.proto";
+
 option go_package = "github.com/S7venKing/ticket-box-go/gen/identity/v1;identityv1";
 
 // IdentityService owns user accounts.
@@ -33,8 +35,8 @@ message User {
   string full_name = 3;
   string phone = 4;
   bool is_active = 5;
-  string created_at = 6;
-  string updated_at = 7;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
 }
 
 // =========================

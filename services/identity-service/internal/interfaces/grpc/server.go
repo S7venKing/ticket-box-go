@@ -2,7 +2,7 @@ package grpc
 
 import (
 	"context"
-	"time"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/google/uuid"
 
@@ -215,7 +215,7 @@ func toProtoUser(
 		FullName:  u.FullName,
 		Phone:     u.Phone,
 		IsActive:  u.IsActive,
-		CreatedAt: u.CreatedAt.Format(time.RFC3339Nano),
-		UpdatedAt: u.UpdatedAt.Format(time.RFC3339Nano),
+		CreatedAt: timestamppb.New(u.CreatedAt),
+		UpdatedAt: timestamppb.New(u.UpdatedAt),
 	}
 }

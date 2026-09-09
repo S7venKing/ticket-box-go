@@ -9,6 +9,7 @@ package identityv1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -30,8 +31,8 @@ type User struct {
 	FullName      string                 `protobuf:"bytes,3,opt,name=full_name,json=fullName,proto3" json:"full_name,omitempty"`
 	Phone         string                 `protobuf:"bytes,4,opt,name=phone,proto3" json:"phone,omitempty"`
 	IsActive      bool                   `protobuf:"varint,5,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
-	CreatedAt     string                 `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     string                 `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -101,18 +102,18 @@ func (x *User) GetIsActive() bool {
 	return false
 }
 
-func (x *User) GetCreatedAt() string {
+func (x *User) GetCreatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.CreatedAt
 	}
-	return ""
+	return nil
 }
 
-func (x *User) GetUpdatedAt() string {
+func (x *User) GetUpdatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.UpdatedAt
 	}
-	return ""
+	return nil
 }
 
 type CreateUserRequest struct {
@@ -688,17 +689,17 @@ var File_identity_v1_identity_proto protoreflect.FileDescriptor
 
 const file_identity_v1_identity_proto_rawDesc = "" +
 	"\n" +
-	"\x1aidentity/v1/identity.proto\x12\videntity.v1\"\xba\x01\n" +
+	"\x1aidentity/v1/identity.proto\x12\videntity.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xf2\x01\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1b\n" +
 	"\tfull_name\x18\x03 \x01(\tR\bfullName\x12\x14\n" +
 	"\x05phone\x18\x04 \x01(\tR\x05phone\x12\x1b\n" +
-	"\tis_active\x18\x05 \x01(\bR\bisActive\x12\x1d\n" +
+	"\tis_active\x18\x05 \x01(\bR\bisActive\x129\n" +
 	"\n" +
-	"created_at\x18\x06 \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"created_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\a \x01(\tR\tupdatedAt\"x\n" +
+	"updated_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"x\n" +
 	"\x11CreateUserRequest\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x1b\n" +
@@ -764,31 +765,34 @@ var file_identity_v1_identity_proto_goTypes = []any{
 	(*ActivateUserResponse)(nil),      // 10: identity.v1.ActivateUserResponse
 	(*DeactivateUserRequest)(nil),     // 11: identity.v1.DeactivateUserRequest
 	(*DeactivateUserResponse)(nil),    // 12: identity.v1.DeactivateUserResponse
+	(*timestamppb.Timestamp)(nil),     // 13: google.protobuf.Timestamp
 }
 var file_identity_v1_identity_proto_depIdxs = []int32{
-	0,  // 0: identity.v1.CreateUserResponse.user:type_name -> identity.v1.User
-	0,  // 1: identity.v1.GetUserByIdResponse.user:type_name -> identity.v1.User
-	0,  // 2: identity.v1.GetUserByEmailResponse.user:type_name -> identity.v1.User
-	0,  // 3: identity.v1.UpdateUserProfileResponse.user:type_name -> identity.v1.User
-	0,  // 4: identity.v1.ActivateUserResponse.user:type_name -> identity.v1.User
-	0,  // 5: identity.v1.DeactivateUserResponse.user:type_name -> identity.v1.User
-	1,  // 6: identity.v1.IdentityService.CreateUser:input_type -> identity.v1.CreateUserRequest
-	3,  // 7: identity.v1.IdentityService.GetUserById:input_type -> identity.v1.GetUserByIdRequest
-	5,  // 8: identity.v1.IdentityService.GetUserByEmail:input_type -> identity.v1.GetUserByEmailRequest
-	7,  // 9: identity.v1.IdentityService.UpdateUserProfile:input_type -> identity.v1.UpdateUserProfileRequest
-	9,  // 10: identity.v1.IdentityService.ActivateUser:input_type -> identity.v1.ActivateUserRequest
-	11, // 11: identity.v1.IdentityService.DeactivateUser:input_type -> identity.v1.DeactivateUserRequest
-	2,  // 12: identity.v1.IdentityService.CreateUser:output_type -> identity.v1.CreateUserResponse
-	4,  // 13: identity.v1.IdentityService.GetUserById:output_type -> identity.v1.GetUserByIdResponse
-	6,  // 14: identity.v1.IdentityService.GetUserByEmail:output_type -> identity.v1.GetUserByEmailResponse
-	8,  // 15: identity.v1.IdentityService.UpdateUserProfile:output_type -> identity.v1.UpdateUserProfileResponse
-	10, // 16: identity.v1.IdentityService.ActivateUser:output_type -> identity.v1.ActivateUserResponse
-	12, // 17: identity.v1.IdentityService.DeactivateUser:output_type -> identity.v1.DeactivateUserResponse
-	12, // [12:18] is the sub-list for method output_type
-	6,  // [6:12] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	13, // 0: identity.v1.User.created_at:type_name -> google.protobuf.Timestamp
+	13, // 1: identity.v1.User.updated_at:type_name -> google.protobuf.Timestamp
+	0,  // 2: identity.v1.CreateUserResponse.user:type_name -> identity.v1.User
+	0,  // 3: identity.v1.GetUserByIdResponse.user:type_name -> identity.v1.User
+	0,  // 4: identity.v1.GetUserByEmailResponse.user:type_name -> identity.v1.User
+	0,  // 5: identity.v1.UpdateUserProfileResponse.user:type_name -> identity.v1.User
+	0,  // 6: identity.v1.ActivateUserResponse.user:type_name -> identity.v1.User
+	0,  // 7: identity.v1.DeactivateUserResponse.user:type_name -> identity.v1.User
+	1,  // 8: identity.v1.IdentityService.CreateUser:input_type -> identity.v1.CreateUserRequest
+	3,  // 9: identity.v1.IdentityService.GetUserById:input_type -> identity.v1.GetUserByIdRequest
+	5,  // 10: identity.v1.IdentityService.GetUserByEmail:input_type -> identity.v1.GetUserByEmailRequest
+	7,  // 11: identity.v1.IdentityService.UpdateUserProfile:input_type -> identity.v1.UpdateUserProfileRequest
+	9,  // 12: identity.v1.IdentityService.ActivateUser:input_type -> identity.v1.ActivateUserRequest
+	11, // 13: identity.v1.IdentityService.DeactivateUser:input_type -> identity.v1.DeactivateUserRequest
+	2,  // 14: identity.v1.IdentityService.CreateUser:output_type -> identity.v1.CreateUserResponse
+	4,  // 15: identity.v1.IdentityService.GetUserById:output_type -> identity.v1.GetUserByIdResponse
+	6,  // 16: identity.v1.IdentityService.GetUserByEmail:output_type -> identity.v1.GetUserByEmailResponse
+	8,  // 17: identity.v1.IdentityService.UpdateUserProfile:output_type -> identity.v1.UpdateUserProfileResponse
+	10, // 18: identity.v1.IdentityService.ActivateUser:output_type -> identity.v1.ActivateUserResponse
+	12, // 19: identity.v1.IdentityService.DeactivateUser:output_type -> identity.v1.DeactivateUserResponse
+	14, // [14:20] is the sub-list for method output_type
+	8,  // [8:14] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_identity_v1_identity_proto_init() }
