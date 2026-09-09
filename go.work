@@ -1,0 +1,10 @@
+go 1.26.0
+
+// Workspace for local development and root-level go commands.
+// Every directory listed here MUST exist (go fails otherwise). Add a line
+// when a new module is created, e.g.:  go work use ./services/booking-service
+use (
+	./gen
+
+	./services/identity-service
+)
