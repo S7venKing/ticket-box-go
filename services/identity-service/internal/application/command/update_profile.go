@@ -5,8 +5,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/s7venking/ticket-box/identity/internal/application/dto"
-	"github.com/s7venking/ticket-box/identity/internal/domain/user"
+	"github.com/S7venKing/ticket-box-go/services/identity-service/internal/application/dto"
+	"github.com/S7venKing/ticket-box-go/services/identity-service/internal/domain/user"
 )
 
 type UpdateProfileCommand struct {

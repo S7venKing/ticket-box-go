@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/s7venking/ticket-box/identity/internal/application/command"
+	"github.com/S7venKing/ticket-box-go/services/identity-service/internal/application/command"
 	"golang.org/x/crypto/argon2"
 )
 

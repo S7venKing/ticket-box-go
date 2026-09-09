@@ -3,7 +3,7 @@ package grpc
 import (
 	"errors"
 
-	"github.com/s7venking/ticket-box/identity/internal/domain/user"
+	"github.com/S7venKing/ticket-box-go/services/identity-service/internal/domain/user"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

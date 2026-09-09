@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/s7venking/ticket-box/identity/internal/domain/user"
+	"github.com/S7venKing/ticket-box-go/services/identity-service/internal/domain/user"
 )
 
 func TestNewUser_InvalidEmail(t *testing.T) {

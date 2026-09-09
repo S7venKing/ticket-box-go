@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/s7venking/ticket-box/identity/internal/domain/user"
+	"github.com/S7venKing/ticket-box-go/services/identity-service/internal/domain/user"
 )
 
 type UserDTO struct {

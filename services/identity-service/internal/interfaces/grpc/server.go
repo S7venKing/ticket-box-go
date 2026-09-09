@@ -6,10 +6,10 @@ import (
 
 	"github.com/google/uuid"
 
-	identityv1 "github.com/s7venking/ticket-box/identity/gen/identity/v1"
-	"github.com/s7venking/ticket-box/identity/internal/application/command"
-	"github.com/s7venking/ticket-box/identity/internal/application/dto"
-	"github.com/s7venking/ticket-box/identity/internal/application/query"
+	identityv1 "github.com/S7venKing/ticket-box-go/gen/identity/v1"
+	"github.com/S7venKing/ticket-box-go/services/identity-service/internal/application/command"
+	"github.com/S7venKing/ticket-box-go/services/identity-service/internal/application/dto"
+	"github.com/S7venKing/ticket-box-go/services/identity-service/internal/application/query"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
