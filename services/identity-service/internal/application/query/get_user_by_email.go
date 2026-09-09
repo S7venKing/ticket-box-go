@@ -29,13 +29,11 @@ func (h *GetUserByEmailHandler) Handle(
 ) (*dto.UserDTO, error) {
 	u, err := h.userRepository.GetByEmail(
 		ctx,
-		query.Email,
+		user.NormalizeEmail(query.Email),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	result := dto.FromUser(u)
-
-	return result, nil
+	return dto.FromUser(u), nil
 }

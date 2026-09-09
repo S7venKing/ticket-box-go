@@ -8,6 +8,9 @@ import (
 	"github.com/google/uuid"
 )
 
+// User is the identity aggregate root.
+// PasswordHash never leaves the application boundary: dto.UserDTO and the
+// protobuf User message do not carry it.
 type User struct {
 	ID uuid.UUID
 
@@ -29,16 +32,12 @@ func NewUser(
 	fullName string,
 	phone string,
 ) (*User, error) {
-	email = normalizeEmail(email)
+	email = NormalizeEmail(email)
 	fullName = strings.TrimSpace(fullName)
 	phone = strings.TrimSpace(phone)
 
-	if email == "" {
-		return nil, ErrEmailRequired
-	}
-
-	if !isValidEmail(email) {
-		return nil, ErrInvalidEmail
+	if err := ValidateEmail(email); err != nil {
+		return nil, err
 	}
 
 	if passwordHash == "" {
@@ -63,16 +62,24 @@ func NewUser(
 	}, nil
 }
 
-func normalizeEmail(email string) string {
-	return strings.ToLower(
-		strings.TrimSpace(email),
-	)
+// NormalizeEmail returns the canonical form used for storage and lookups.
+func NormalizeEmail(email string) string {
+	return strings.ToLower(strings.TrimSpace(email))
 }
 
-func isValidEmail(email string) bool {
-	_, err := mail.ParseAddress(email)
+// ValidateEmail checks a normalized email address.
+func ValidateEmail(email string) error {
+	if email == "" {
+		return ErrEmailRequired
+	}
 
-	return err == nil
+	addr, err := mail.ParseAddress(email)
+	if err != nil || addr.Address != email {
+		// addr.Address != email rejects display-name forms like "Name <a@b.c>".
+		return ErrInvalidEmail
+	}
+
+	return nil
 }
 
 func (u *User) UpdateProfile(
