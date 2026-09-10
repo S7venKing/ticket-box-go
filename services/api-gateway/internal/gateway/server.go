@@ -8,10 +8,17 @@ import (
 	"os"
 	"strings"
 
+	identityv1 "github.com/S7venKing/ticket-box-go/gen/identity/v1"
 	"github.com/S7venKing/ticket-box-go/services/api-gateway/internal/auth"
 )
 
-func RunHTTPServer(tokenService *auth.TokenService, identityClient *IdentityClient) {
+type IdentityGatewayClient interface {
+	CreateUser(ctx context.Context, email, password, fullName, phone string) (*identityv1.User, error)
+	AuthenticateUser(ctx context.Context, email, password string) (*identityv1.User, string, error)
+	GetUserByID(ctx context.Context, id string) (*identityv1.User, error)
+}
+
+func NewMux(tokenService *auth.TokenService, identityClient IdentityGatewayClient) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -142,6 +149,12 @@ func RunHTTPServer(tokenService *auth.TokenService, identityClient *IdentityClie
 	mux.HandleFunc("/me", AuthMiddleware(tokenService, protected))
 	mux.HandleFunc("/profile", AuthMiddleware(tokenService, protected))
 	mux.HandleFunc("/users/me", AuthMiddleware(tokenService, protected))
+
+	return mux
+}
+
+func RunHTTPServer(tokenService *auth.TokenService, identityClient *IdentityClient) {
+	mux := NewMux(tokenService, identityClient)
 
 	port := os.Getenv("PORT")
 	if port == "" {
