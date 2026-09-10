@@ -1,10 +1,3 @@
-// Package grpc is the inbound gRPC adapter of identity-service.
-//
-// It contains no business logic. Each handler:
-//  1. validates request shape (e.g. UUID format),
-//  2. calls one application command/query handler,
-//  3. maps the DTO to protobuf,
-//  4. maps domain/application errors to gRPC status codes (mapper.go).
 package grpc
 
 import (
@@ -25,19 +18,23 @@ import (
 type IdentityServer struct {
 	identityv1.UnimplementedIdentityServiceServer
 
-	logger *slog.Logger
+	logger    *slog.Logger
+	jwtSecret string
 
-	createUserHandler     *command.CreateUserHandler
-	getUserByIDHandler    *query.GetUserByIDHandler
-	getUserByEmailHandler *query.GetUserByEmailHandler
-	updateProfileHandler  *command.UpdateProfileHandler
-	activateUserHandler   *command.ActivateUserHandler
-	deactivateUserHandler *command.DeactivateUserHandler
+	createUserHandler       *command.CreateUserHandler
+	authenticateUserHandler *command.AuthenticateUserHandler
+	getUserByIDHandler      *query.GetUserByIDHandler
+	getUserByEmailHandler   *query.GetUserByEmailHandler
+	updateProfileHandler    *command.UpdateProfileHandler
+	activateUserHandler     *command.ActivateUserHandler
+	deactivateUserHandler   *command.DeactivateUserHandler
 }
 
 func NewIdentityServer(
 	logger *slog.Logger,
+	jwtSecret string,
 	createUserHandler *command.CreateUserHandler,
+	authenticateUserHandler *command.AuthenticateUserHandler,
 	getUserByIDHandler *query.GetUserByIDHandler,
 	getUserByEmailHandler *query.GetUserByEmailHandler,
 	updateProfileHandler *command.UpdateProfileHandler,
@@ -45,13 +42,15 @@ func NewIdentityServer(
 	deactivateUserHandler *command.DeactivateUserHandler,
 ) *IdentityServer {
 	return &IdentityServer{
-		logger:                logger,
-		createUserHandler:     createUserHandler,
-		getUserByIDHandler:    getUserByIDHandler,
-		getUserByEmailHandler: getUserByEmailHandler,
-		updateProfileHandler:  updateProfileHandler,
-		activateUserHandler:   activateUserHandler,
-		deactivateUserHandler: deactivateUserHandler,
+		logger:                  logger,
+		jwtSecret:               jwtSecret,
+		createUserHandler:       createUserHandler,
+		authenticateUserHandler: authenticateUserHandler,
+		getUserByIDHandler:      getUserByIDHandler,
+		getUserByEmailHandler:   getUserByEmailHandler,
+		updateProfileHandler:    updateProfileHandler,
+		activateUserHandler:     activateUserHandler,
+		deactivateUserHandler:   deactivateUserHandler,
 	}
 }
 
@@ -70,6 +69,29 @@ func (s *IdentityServer) CreateUser(
 	}
 
 	return &identityv1.CreateUserResponse{User: toProtoUser(result)}, nil
+}
+
+func (s *IdentityServer) AuthenticateUser(
+	ctx context.Context,
+	req *identityv1.AuthenticateUserRequest,
+) (*identityv1.AuthenticateUserResponse, error) {
+	result, err := s.authenticateUserHandler.Handle(ctx, command.AuthenticateUserCommand{
+		Email:    req.GetEmail(),
+		Password: req.GetPassword(),
+	})
+	if err != nil {
+		return nil, s.mapError(ctx, err)
+	}
+
+	token, err := generateJWT(s.jwtSecret, result.ID.String(), result.Email)
+	if err != nil {
+		return nil, s.mapError(ctx, err)
+	}
+
+	return &identityv1.AuthenticateUserResponse{
+		User:        toProtoUser(result),
+		AccessToken: token,
+	}, nil
 }
 
 func (s *IdentityServer) GetUserById(

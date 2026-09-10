@@ -125,7 +125,9 @@ func newTestClient(t *testing.T) identityv1.IdentityServiceClient {
 
 	server := identitygrpc.NewIdentityServer(
 		logger,
+		"super-secret",
 		command.NewCreateUserHandler(repo, plainHasher{}),
+		command.NewAuthenticateUserHandler(repo, plainHasher{}),
 		query.NewGetUserByIDHandler(repo),
 		query.NewGetUserByEmailHandler(repo),
 		command.NewUpdateProfileHandler(repo),
@@ -180,6 +182,22 @@ func TestIdentityServer_EndToEnd(t *testing.T) {
 	// unknown user -> NotFound
 	_, err = client.GetUserById(ctx, &identityv1.GetUserByIdRequest{Id: uuid.NewString()})
 	require.Equal(t, codes.NotFound, status.Code(err))
+
+	// authentication success returns a JWT token
+	authRes, err := client.AuthenticateUser(ctx, &identityv1.AuthenticateUserRequest{
+		Email:    "alice@example.com",
+		Password: "correct-horse",
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, authRes.GetAccessToken())
+	require.Equal(t, "alice@example.com", authRes.GetUser().GetEmail())
+
+	// wrong password -> Unauthenticated
+	_, err = client.AuthenticateUser(ctx, &identityv1.AuthenticateUserRequest{
+		Email:    "alice@example.com",
+		Password: "wrong-password",
+	})
+	require.Equal(t, codes.Unauthenticated, status.Code(err))
 
 	// deactivate twice -> FailedPrecondition
 	id := created.GetUser().GetId()

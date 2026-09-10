@@ -16,6 +16,8 @@ service IdentityService {
 
   rpc GetUserByEmail(GetUserByEmailRequest) returns (GetUserByEmailResponse);
 
+  rpc AuthenticateUser(AuthenticateUserRequest) returns (AuthenticateUserResponse);
+
   rpc UpdateUserProfile(UpdateUserProfileRequest) returns (UpdateUserProfileResponse);
 
   rpc ActivateUser(ActivateUserRequest) returns (ActivateUserResponse);
@@ -77,6 +79,20 @@ message GetUserByEmailRequest {
 
 message GetUserByEmailResponse {
   User user = 1;
+}
+
+// =========================
+// Authenticate User
+// =========================
+
+message AuthenticateUserRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message AuthenticateUserResponse {
+  User user = 1;
+  string access_token = 2;
 }
 
 // =========================

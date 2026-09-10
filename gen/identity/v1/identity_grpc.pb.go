@@ -22,6 +22,7 @@ const (
 	IdentityService_CreateUser_FullMethodName        = "/identity.v1.IdentityService/CreateUser"
 	IdentityService_GetUserById_FullMethodName       = "/identity.v1.IdentityService/GetUserById"
 	IdentityService_GetUserByEmail_FullMethodName    = "/identity.v1.IdentityService/GetUserByEmail"
+	IdentityService_AuthenticateUser_FullMethodName  = "/identity.v1.IdentityService/AuthenticateUser"
 	IdentityService_UpdateUserProfile_FullMethodName = "/identity.v1.IdentityService/UpdateUserProfile"
 	IdentityService_ActivateUser_FullMethodName      = "/identity.v1.IdentityService/ActivateUser"
 	IdentityService_DeactivateUser_FullMethodName    = "/identity.v1.IdentityService/DeactivateUser"
@@ -38,6 +39,7 @@ type IdentityServiceClient interface {
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error)
 	GetUserById(ctx context.Context, in *GetUserByIdRequest, opts ...grpc.CallOption) (*GetUserByIdResponse, error)
 	GetUserByEmail(ctx context.Context, in *GetUserByEmailRequest, opts ...grpc.CallOption) (*GetUserByEmailResponse, error)
+	AuthenticateUser(ctx context.Context, in *AuthenticateUserRequest, opts ...grpc.CallOption) (*AuthenticateUserResponse, error)
 	UpdateUserProfile(ctx context.Context, in *UpdateUserProfileRequest, opts ...grpc.CallOption) (*UpdateUserProfileResponse, error)
 	ActivateUser(ctx context.Context, in *ActivateUserRequest, opts ...grpc.CallOption) (*ActivateUserResponse, error)
 	DeactivateUser(ctx context.Context, in *DeactivateUserRequest, opts ...grpc.CallOption) (*DeactivateUserResponse, error)
@@ -75,6 +77,16 @@ func (c *identityServiceClient) GetUserByEmail(ctx context.Context, in *GetUserB
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetUserByEmailResponse)
 	err := c.cc.Invoke(ctx, IdentityService_GetUserByEmail_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *identityServiceClient) AuthenticateUser(ctx context.Context, in *AuthenticateUserRequest, opts ...grpc.CallOption) (*AuthenticateUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AuthenticateUserResponse)
+	err := c.cc.Invoke(ctx, IdentityService_AuthenticateUser_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -122,6 +134,7 @@ type IdentityServiceServer interface {
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
 	GetUserById(context.Context, *GetUserByIdRequest) (*GetUserByIdResponse, error)
 	GetUserByEmail(context.Context, *GetUserByEmailRequest) (*GetUserByEmailResponse, error)
+	AuthenticateUser(context.Context, *AuthenticateUserRequest) (*AuthenticateUserResponse, error)
 	UpdateUserProfile(context.Context, *UpdateUserProfileRequest) (*UpdateUserProfileResponse, error)
 	ActivateUser(context.Context, *ActivateUserRequest) (*ActivateUserResponse, error)
 	DeactivateUser(context.Context, *DeactivateUserRequest) (*DeactivateUserResponse, error)
@@ -143,6 +156,9 @@ func (UnimplementedIdentityServiceServer) GetUserById(context.Context, *GetUserB
 }
 func (UnimplementedIdentityServiceServer) GetUserByEmail(context.Context, *GetUserByEmailRequest) (*GetUserByEmailResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUserByEmail not implemented")
+}
+func (UnimplementedIdentityServiceServer) AuthenticateUser(context.Context, *AuthenticateUserRequest) (*AuthenticateUserResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AuthenticateUser not implemented")
 }
 func (UnimplementedIdentityServiceServer) UpdateUserProfile(context.Context, *UpdateUserProfileRequest) (*UpdateUserProfileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateUserProfile not implemented")
@@ -228,6 +244,24 @@ func _IdentityService_GetUserByEmail_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _IdentityService_AuthenticateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthenticateUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityServiceServer).AuthenticateUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IdentityService_AuthenticateUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdentityServiceServer).AuthenticateUser(ctx, req.(*AuthenticateUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _IdentityService_UpdateUserProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateUserProfileRequest)
 	if err := dec(in); err != nil {
@@ -300,6 +334,10 @@ var IdentityService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserByEmail",
 			Handler:    _IdentityService_GetUserByEmail_Handler,
+		},
+		{
+			MethodName: "AuthenticateUser",
+			Handler:    _IdentityService_AuthenticateUser_Handler,
 		},
 		{
 			MethodName: "UpdateUserProfile",

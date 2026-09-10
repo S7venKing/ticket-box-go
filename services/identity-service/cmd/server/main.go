@@ -66,7 +66,9 @@ func run() error {
 	// ---- application + inbound adapter ----
 	identityServer := identitygrpc.NewIdentityServer(
 		logger,
+		cfg.JWTSecret,
 		command.NewCreateUserHandler(userRepository, passwordHasher),
+		command.NewAuthenticateUserHandler(userRepository, passwordHasher),
 		query.NewGetUserByIDHandler(userRepository),
 		query.NewGetUserByEmailHandler(userRepository),
 		command.NewUpdateProfileHandler(userRepository),

@@ -51,6 +51,8 @@ func knownError(err error) (codes.Code, string, bool) {
 		return codes.InvalidArgument, "password is required", true
 	case errors.Is(err, command.ErrPasswordTooShort):
 		return codes.InvalidArgument, "password is too short", true
+	case errors.Is(err, command.ErrInvalidCredentials):
+		return codes.Unauthenticated, "invalid credentials", true
 
 	case errors.Is(err, user.ErrUserAlreadyActive):
 		return codes.FailedPrecondition, "user is already active", true
