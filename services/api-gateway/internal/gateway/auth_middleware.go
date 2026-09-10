@@ -8,9 +8,12 @@ import (
 	"github.com/S7venKing/ticket-box-go/services/api-gateway/internal/auth"
 )
 
+type userIDContextKey struct{}
+type userEmailContextKey struct{}
+
 func AuthMiddleware(tokenService *auth.TokenService, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		header := r.Header.Get("Authorization")
+		header := strings.TrimSpace(r.Header.Get("Authorization"))
 		if header == "" {
 			http.Error(w, "missing authorization header", http.StatusUnauthorized)
 			return
@@ -22,14 +25,15 @@ func AuthMiddleware(tokenService *auth.TokenService, next http.HandlerFunc) http
 			return
 		}
 
-		claims, err := tokenService.Validate(parts[1])
+		token := strings.TrimSpace(parts[1])
+		claims, err := tokenService.Validate(token)
 		if err != nil {
 			http.Error(w, "invalid token", http.StatusUnauthorized)
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "user_id", claims.UserID)
-		ctx = context.WithValue(ctx, "user_email", claims.Email)
+		ctx := context.WithValue(r.Context(), userIDContextKey{}, claims.UserID)
+		ctx = context.WithValue(ctx, userEmailContextKey{}, claims.Email)
 		next(w, r.WithContext(ctx))
 	}
 }
