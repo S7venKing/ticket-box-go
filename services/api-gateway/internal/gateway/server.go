@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/S7venKing/ticket-box-go/services/api-gateway/internal/auth"
 )
@@ -82,6 +83,33 @@ func RunHTTPServer(tokenService *auth.TokenService, identityClient *IdentityClie
 			"user":           user,
 			"access_token":   jwt,
 			"identity_token": tokenFromIdentity,
+		}); err != nil {
+			http.Error(w, "failed to encode response", http.StatusInternalServerError)
+		}
+	})
+
+	mux.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		authHeader := strings.TrimSpace(r.Header.Get("Authorization"))
+		if authHeader != "" {
+			parts := strings.SplitN(authHeader, " ", 2)
+			if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
+				http.Error(w, "invalid authorization header", http.StatusUnauthorized)
+				return
+			}
+			if _, err := tokenService.Validate(strings.TrimSpace(parts[1])); err != nil {
+				http.Error(w, "invalid token", http.StatusUnauthorized)
+				return
+			}
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(map[string]any{
+			"message": "logged out",
 		}); err != nil {
 			http.Error(w, "failed to encode response", http.StatusInternalServerError)
 		}
