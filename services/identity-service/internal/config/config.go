@@ -13,6 +13,8 @@ type Config struct {
 	AppEnv          string
 	GRPCPort        int
 	ShutdownTimeout time.Duration
+	JWTSecret       string
+	JWTTTL          time.Duration
 
 	MySQLHost     string
 	MySQLPort     int
@@ -29,6 +31,7 @@ func Load() (Config, error) {
 	cfg := Config{
 		AppName:       getEnv("APP_NAME", "identity-service"),
 		AppEnv:        getEnv("APP_ENV", "development"),
+		JWTSecret:     getEnv("JWT_SECRET", "change-me-in-production"),
 		MySQLHost:     getEnv("MYSQL_HOST", "localhost"),
 		MySQLDatabase: getEnv("MYSQL_DATABASE", "identity_db"),
 		MySQLUser:     getEnv("MYSQL_USER", "root"),
@@ -46,6 +49,10 @@ func Load() (Config, error) {
 	}
 
 	if cfg.ShutdownTimeout, err = getEnvDuration("SHUTDOWN_TIMEOUT", 15*time.Second); err != nil {
+		return Config{}, err
+	}
+
+	if cfg.JWTTTL, err = getEnvDuration("JWT_TTL", 30*time.Minute); err != nil {
 		return Config{}, err
 	}
 
