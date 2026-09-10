@@ -32,7 +32,7 @@ func NewDB(ctx context.Context, cfg Config) (*sql.DB, error) {
 	driverCfg.Timeout = 5 * time.Second
 	driverCfg.ReadTimeout = 30 * time.Second
 	driverCfg.WriteTimeout = 30 * time.Second
-	driverCfg.Params = map[string]string{"charset": "utf8mb4"}
+	driverCfg.Collation = "utf8mb4_general_ci"
 
 	connector, err := mysqldriver.NewConnector(driverCfg)
 	if err != nil {
