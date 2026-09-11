@@ -25,3 +25,5 @@ profile.cov
 # Editor/IDE
 .idea/
 .vscode/
+frontend/node_modules/
+frontend/dist/
