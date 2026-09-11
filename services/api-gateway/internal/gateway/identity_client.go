@@ -16,12 +16,13 @@ func NewIdentityClient(cc grpc.ClientConnInterface) *IdentityClient {
 	return &IdentityClient{client: identityv1.NewIdentityServiceClient(cc)}
 }
 
-func (c *IdentityClient) CreateUser(ctx context.Context, email, password, fullName, phone string) (*identityv1.User, error) {
+func (c *IdentityClient) CreateUser(ctx context.Context, email, password, fullName, phone, role string) (*identityv1.User, error) {
 	resp, err := c.client.CreateUser(ctx, &identityv1.CreateUserRequest{
 		Email:    email,
 		Password: password,
 		FullName: fullName,
 		Phone:    phone,
+		Role:     role,
 	})
 	if err != nil {
 		return nil, err

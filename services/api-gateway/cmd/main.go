@@ -24,17 +24,29 @@ func main() {
 		identityAddr = "localhost:50051"
 	}
 
+	ticketAddr := os.Getenv("TICKET_SERVICE_ADDR")
+	if ticketAddr == "" {
+		ticketAddr = "localhost:50052"
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	conn, err := grpc.DialContext(ctx, identityAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	identityConn, err := grpc.DialContext(ctx, identityAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("dial identity service: %v", err)
 	}
-	defer conn.Close()
+	defer identityConn.Close()
 
-	identityClient := gateway.NewIdentityClient(conn)
+	ticketConn, err := grpc.DialContext(ctx, ticketAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("dial ticket service: %v", err)
+	}
+	defer ticketConn.Close()
+
+	identityClient := gateway.NewIdentityClient(identityConn)
+	ticketClient := gateway.NewTicketClient(ticketConn)
 	tokenService := auth.NewTokenService(jwtSecret)
 
-	gateway.RunHTTPServer(tokenService, identityClient)
+	gateway.RunHTTPServer(tokenService, identityClient, ticketClient)
 }

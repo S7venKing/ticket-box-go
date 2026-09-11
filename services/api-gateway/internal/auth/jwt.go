@@ -31,6 +31,10 @@ type TokenService struct {
 }
 
 func (s *TokenService) Generate(userID, email string) (string, error) {
+	return s.GenerateWithRole(userID, email, "user")
+}
+
+func (s *TokenService) GenerateWithRole(userID, email, role string) (string, error) {
 	if s.secret == "" {
 		return "", errors.New("jwt secret is required")
 	}
@@ -44,6 +48,7 @@ func (s *TokenService) Generate(userID, email string) (string, error) {
 	claims := jwtpkg.MapClaims{
 		"sub":   userID,
 		"email": email,
+		"role":  role,
 		"iat":   time.Now().Unix(),
 		"exp":   time.Now().Add(DefaultTokenTTL).Unix(),
 		"type":  "access",
@@ -75,6 +80,7 @@ func (s *TokenService) Validate(tokenString string) (Claims, error) {
 
 	userID, _ := claims["sub"].(string)
 	email, _ := claims["email"].(string)
+	role, _ := claims["role"].(string)
 	tokenType, _ := claims["type"].(string)
 	if userID == "" || email == "" {
 		return Claims{}, errors.New("invalid token claims")
@@ -83,10 +89,14 @@ func (s *TokenService) Validate(tokenString string) (Claims, error) {
 		return Claims{}, errors.New("unexpected token type")
 	}
 
-	return Claims{UserID: userID, Email: email}, nil
+	if role == "" {
+		role = "user"
+	}
+	return Claims{UserID: userID, Email: email, Role: role}, nil
 }
 
 type Claims struct {
 	UserID string
 	Email  string
+	Role   string
 }

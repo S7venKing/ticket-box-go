@@ -10,6 +10,7 @@ import (
 
 type userIDContextKey struct{}
 type userEmailContextKey struct{}
+type userRoleContextKey struct{}
 
 func AuthMiddleware(tokenService *auth.TokenService, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -34,6 +35,7 @@ func AuthMiddleware(tokenService *auth.TokenService, next http.HandlerFunc) http
 
 		ctx := context.WithValue(r.Context(), userIDContextKey{}, claims.UserID)
 		ctx = context.WithValue(ctx, userEmailContextKey{}, claims.Email)
+		ctx = context.WithValue(ctx, userRoleContextKey{}, claims.Role)
 		next(w, r.WithContext(ctx))
 	}
 }
