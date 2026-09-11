@@ -13,6 +13,7 @@ type CreateUserCommand struct {
 	Password string
 	FullName string
 	Phone    string
+	Role     string
 }
 
 type CreateUserHandler struct {
@@ -59,7 +60,7 @@ func (h *CreateUserHandler) Handle(
 		return nil, err
 	}
 
-	u, err := user.NewUser(email, passwordHash, cmd.FullName, cmd.Phone)
+	u, err := user.NewUser(email, passwordHash, cmd.FullName, cmd.Phone, cmd.Role)
 	if err != nil {
 		return nil, err
 	}

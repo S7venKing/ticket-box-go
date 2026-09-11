@@ -19,6 +19,7 @@ type User struct {
 
 	FullName string
 	Phone    string
+	Role     string
 
 	IsActive bool
 
@@ -31,6 +32,7 @@ func NewUser(
 	passwordHash string,
 	fullName string,
 	phone string,
+	role ...string,
 ) (*User, error) {
 	email = NormalizeEmail(email)
 	fullName = strings.TrimSpace(fullName)
@@ -50,16 +52,39 @@ func NewUser(
 
 	now := time.Now().UTC()
 
+	userRole := RoleUser
+	if len(role) > 0 && role[0] != "" {
+		userRole = NormalizeRole(role[0])
+	}
+	if !IsValidRole(userRole) {
+		return nil, ErrInvalidRole
+	}
+
 	return &User{
 		ID:           uuid.New(),
 		Email:        email,
 		PasswordHash: passwordHash,
 		FullName:     fullName,
 		Phone:        phone,
+		Role:         userRole,
 		IsActive:     true,
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	}, nil
+}
+
+const (
+	RoleUser      = "user"
+	RoleOrganizer = "organizer"
+	RoleAdmin     = "admin"
+)
+
+func NormalizeRole(role string) string {
+	return strings.ToLower(strings.TrimSpace(role))
+}
+
+func IsValidRole(role string) bool {
+	return role == RoleUser || role == RoleOrganizer || role == RoleAdmin
 }
 
 // NormalizeEmail returns the canonical form used for storage and lookups.

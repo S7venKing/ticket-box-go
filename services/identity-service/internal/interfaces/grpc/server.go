@@ -63,6 +63,7 @@ func (s *IdentityServer) CreateUser(
 		Password: req.GetPassword(),
 		FullName: req.GetFullName(),
 		Phone:    req.GetPhone(),
+		Role:     req.GetRole(),
 	})
 	if err != nil {
 		return nil, s.mapError(ctx, err)
@@ -196,5 +197,6 @@ func toProtoUser(u *dto.UserDTO) *identityv1.User {
 		IsActive:  u.IsActive,
 		CreatedAt: timestamppb.New(u.CreatedAt),
 		UpdatedAt: timestamppb.New(u.UpdatedAt),
+		Role:      u.Role,
 	}
 }

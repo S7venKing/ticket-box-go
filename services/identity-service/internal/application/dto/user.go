@@ -13,6 +13,7 @@ type UserDTO struct {
 	Email     string
 	FullName  string
 	Phone     string
+	Role      string
 	IsActive  bool
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -24,6 +25,7 @@ func FromUser(u *user.User) *UserDTO {
 		Email:     u.Email,
 		FullName:  u.FullName,
 		Phone:     u.Phone,
+		Role:      u.Role,
 		IsActive:  u.IsActive,
 		CreatedAt: u.CreatedAt,
 		UpdatedAt: u.UpdatedAt,

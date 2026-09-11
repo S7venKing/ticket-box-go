@@ -32,6 +32,7 @@ const selectUserColumns = `
 		full_name,
 		phone,
 		is_active,
+		role,
 		created_at,
 		updated_at
 	FROM users
@@ -49,10 +50,11 @@ func (r *UserRepository) Create(
 			full_name,
 			phone,
 			is_active,
+			role,
 			created_at,
 			updated_at
 		)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
 	_, err := r.db.ExecContext(
@@ -64,6 +66,7 @@ func (r *UserRepository) Create(
 		u.FullName,
 		u.Phone,
 		u.IsActive,
+		u.Role,
 		u.CreatedAt,
 		u.UpdatedAt,
 	)
@@ -168,6 +171,7 @@ func scanUser(row *sql.Row) (*user.User, error) {
 		&u.FullName,
 		&phone,
 		&u.IsActive,
+		&u.Role,
 		&u.CreatedAt,
 		&u.UpdatedAt,
 	)
