@@ -10,6 +10,7 @@ The project currently contains:
 - an API gateway for the public HTTP API;
 - MySQL persistence shared by the local Docker Compose stack;
 - protobuf contracts and generated Go clients/servers.
+- a React/Vite frontend using Redux Toolkit for the operator and event workflows.
 
 ## 1. Architecture
 
@@ -685,7 +686,61 @@ The Postman collection uses the gateway base URL
 admin/organizer access token through `/login`, then set the
 `Authorization: Bearer <token>` header on protected requests.
 
-## 11. Troubleshooting
+- Complete gateway business API reference:
+  [`docs/api-gateway-api.md`](./docs/api-gateway-api.md)
+
+## 11. React frontend
+
+Directory: [`frontend/`](./frontend/)
+
+The frontend is a Vite + React + TypeScript application. It is intentionally
+organized by responsibility:
+
+```text
+frontend/src/
+├── components/       reusable UI, layout, and route guards
+├── hooks/            reusable Redux and async hooks
+├── lib/              API client and infrastructure helpers
+├── modules/          Redux slices grouped by business module
+│   ├── auth/
+│   ├── organizers/
+│   └── events/
+├── pages/            route-level screens
+├── store.ts          Redux store and typed store definitions
+└── types.ts          shared frontend domain types
+```
+
+Implemented screens:
+
+- Home page
+- Login page
+- Events list
+- Admin organizer-account creation
+- Organizer event creation
+- Event submission and admin approval actions
+
+Run the frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend uses `http://localhost:8081` by default. To point it at another
+gateway:
+
+```bash
+VITE_API_URL=http://localhost:8081 npm run dev
+```
+
+Build the frontend:
+
+```bash
+npm run build
+```
+
+## 12. Troubleshooting
 
 ### Gateway port is already in use
 
@@ -731,7 +786,7 @@ docker compose up --build
 JWT role claims are created at login time. After changing a user's role in the
 database, log in again and use the newly returned `access_token`.
 
-## 12. Security notes
+## 13. Security notes
 
 - Password hashes are never returned in DTOs or protobuf responses.
 - JWT secrets and database credentials in Compose are development defaults.
