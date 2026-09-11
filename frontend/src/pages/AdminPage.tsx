@@ -1,2 +1,35 @@
-import { FormEvent,useState } from "react"; import { post } from "../lib/api"; import { Card } from "../components/ui/Card"; import { Button } from "../components/ui/Button";
-export function AdminPage(){const [form,setForm]=useState({name:"",email:"",password:"",phone:"",slug:""});const [message,setMessage]=useState("");const submit=async(e:FormEvent)=>{e.preventDefault();try{await post("/admin/organizers",form);setMessage("Organizer account created.");setForm({name:"",email:"",password:"",phone:"",slug:""});}catch(err){setMessage(err instanceof Error?err.message:"Failed");}};return <Card title="Create organizer account"><form className="form" onSubmit={submit}>{Object.entries(form).map(([key,value])=><input key={key} placeholder={key} type={key==="password"?"password":"text"} value={value} onChange={e=>setForm({...form,[key]:e.target.value})}/>) }<Button>Create organizer</Button>{message&&<p>{message}</p>}</form></Card>}
+import { FormEvent, useState } from "react";
+import { post } from "../lib/api";
+import { Card } from "../components/ui/Card";
+import { Button } from "../components/ui/Button";
+export function AdminPage() {
+  const [form, setForm] = useState({ name: "", email: "", password: "", phone: "", slug: "" });
+  const [message, setMessage] = useState("");
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    try {
+      await post("/admin/organizers", form);
+      setMessage("Organizer account created.");
+      setForm({ name: "", email: "", password: "", phone: "", slug: "" });
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Failed");
+    }
+  };
+  return (
+    <Card title="Create organizer account">
+      <form className="form" onSubmit={submit}>
+        {Object.entries(form).map(([key, value]) => (
+          <input
+            key={key}
+            placeholder={key}
+            type={key === "password" ? "password" : "text"}
+            value={value}
+            onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+          />
+        ))}
+        <Button>Create organizer</Button>
+        {message && <p>{message}</p>}
+      </form>
+    </Card>
+  );
+}

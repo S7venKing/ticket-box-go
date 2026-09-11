@@ -9,6 +9,14 @@ npm install
 npm run dev
 ```
 
+Check and format the frontend:
+
+```bash
+npm run lint
+npm run format
+npm run format:check
+```
+
 Set `VITE_API_URL` when the gateway is not running at the default
 `http://localhost:8081`.
 

@@ -4,7 +4,11 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
   const token = localStorage.getItem("access_token");
   const response = await fetch(`${baseURL}${path}`, {
     ...options,
-    headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}), ...options.headers },
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options.headers,
+    },
   });
   if (!response.ok) {
     const message = await response.text();
@@ -14,5 +18,7 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
 }
 
 export const get = <T>(path: string) => api<T>(path);
-export const post = <T>(path: string, body?: unknown) => api<T>(path, { method: "POST", body: body === undefined ? undefined : JSON.stringify(body) });
-export const put = <T>(path: string, body: unknown) => api<T>(path, { method: "PUT", body: JSON.stringify(body) });
+export const post = <T>(path: string, body?: unknown) =>
+  api<T>(path, { method: "POST", body: body === undefined ? undefined : JSON.stringify(body) });
+export const put = <T>(path: string, body: unknown) =>
+  api<T>(path, { method: "PUT", body: JSON.stringify(body) });
