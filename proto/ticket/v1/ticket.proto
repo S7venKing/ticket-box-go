@@ -1,0 +1,138 @@
+syntax = "proto3";
+
+package ticket.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/S7venKing/ticket-box-go/gen/ticket/v1;ticketv1";
+
+service TicketService {
+  rpc CreateOrganizer(CreateOrganizerRequest) returns (CreateOrganizerResponse);
+  rpc GetOrganizerById(GetOrganizerByIdRequest) returns (GetOrganizerByIdResponse);
+  rpc ListOrganizers(ListOrganizersRequest) returns (ListOrganizersResponse);
+  rpc UpdateOrganizer(UpdateOrganizerRequest) returns (UpdateOrganizerResponse);
+
+  rpc CreateEvent(CreateEventRequest) returns (CreateEventResponse);
+  rpc GetEventById(GetEventByIdRequest) returns (GetEventByIdResponse);
+  rpc ListEvents(ListEventsRequest) returns (ListEventsResponse);
+  rpc PublishEvent(PublishEventRequest) returns (PublishEventResponse);
+  rpc SubmitEvent(SubmitEventRequest) returns (SubmitEventResponse);
+  rpc ApproveEvent(ApproveEventRequest) returns (ApproveEventResponse);
+}
+
+enum EventStatus {
+  EVENT_STATUS_UNSPECIFIED = 0;
+  EVENT_STATUS_DRAFT = 1;
+  EVENT_STATUS_PENDING_APPROVAL = 2;
+  EVENT_STATUS_PUBLISHED = 3;
+  EVENT_STATUS_CANCELLED = 4;
+  EVENT_STATUS_CLOSED = 5;
+}
+
+message Organizer {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  string phone = 4;
+  string slug = 5;
+  bool is_active = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+message Event {
+  string id = 1;
+  string organizer_id = 2;
+  string title = 3;
+  string description = 4;
+  string venue = 5;
+  google.protobuf.Timestamp start_at = 6;
+  google.protobuf.Timestamp end_at = 7;
+  int32 capacity = 8;
+  EventStatus status = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message CreateOrganizerRequest {
+  string name = 1;
+  string email = 2;
+  string phone = 3;
+  string slug = 4;
+}
+
+message CreateOrganizerResponse {
+  Organizer organizer = 1;
+}
+
+message GetOrganizerByIdRequest {
+  string id = 1;
+}
+
+message GetOrganizerByIdResponse {
+  Organizer organizer = 1;
+}
+
+message ListOrganizersRequest {
+  int32 offset = 1;
+  int32 limit = 2;
+}
+
+message ListOrganizersResponse {
+  repeated Organizer organizers = 1;
+}
+
+message UpdateOrganizerRequest {
+  string id = 1;
+  string name = 2;
+  string phone = 3;
+  string slug = 4;
+}
+
+message UpdateOrganizerResponse {
+  Organizer organizer = 1;
+}
+
+message CreateEventRequest {
+  string organizer_id = 1;
+  string title = 2;
+  string description = 3;
+  string venue = 4;
+  google.protobuf.Timestamp start_at = 5;
+  google.protobuf.Timestamp end_at = 6;
+  int32 capacity = 7;
+}
+
+message CreateEventResponse {
+  Event event = 1;
+}
+
+message GetEventByIdRequest {
+  string id = 1;
+}
+
+message GetEventByIdResponse {
+  Event event = 1;
+}
+
+message ListEventsRequest {
+  int32 offset = 1;
+  int32 limit = 2;
+}
+
+message ListEventsResponse {
+  repeated Event events = 1;
+}
+
+message PublishEventRequest {
+  string id = 1;
+}
+
+message PublishEventResponse {
+  Event event = 1;
+}
+
+message SubmitEventRequest { string id = 1; }
+message SubmitEventResponse { Event event = 1; }
+message ApproveEventRequest { string id = 1; }
+message ApproveEventResponse { Event event = 1; }
