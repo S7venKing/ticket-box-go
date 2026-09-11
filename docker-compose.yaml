@@ -13,6 +13,7 @@ services:
       - mysql_data:/var/lib/mysql
       # Local dev only: MySQL runs *.sql from this folder on first init.
       - ./services/identity-service/migrations:/docker-entrypoint-initdb.d:ro
+      - ./services/ticket-service/migrations/001_create_ticket_schema.up.sql:/docker-entrypoint-initdb.d/003_create_ticket_schema.up.sql:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
       interval: 5s
@@ -50,11 +51,34 @@ services:
       PORT: "8080"
       JWT_SECRET: s7venKing@123
       IDENTITY_SERVICE_ADDR: identity-service:50051
+      TICKET_SERVICE_ADDR: ticket-service:50052
     ports:
       - "8081:8080"
     depends_on:
       identity-service:
         condition: service_started
+      ticket-service:
+        condition: service_started
+
+  ticket-service:
+    build:
+      context: .
+      dockerfile: services/ticket-service/Dockerfile
+    container_name: ticketbox-ticket-service
+    restart: unless-stopped
+    environment:
+      APP_ENV: development
+      APP_PORT: "50052"
+      MYSQL_HOST: mysql
+      MYSQL_PORT: "3306"
+      MYSQL_DATABASE: ticket_db
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+    ports:
+      - "50052:50052"
+    depends_on:
+      mysql:
+        condition: service_healthy
 
 volumes:
   mysql_data:
