@@ -10,7 +10,6 @@ CREATE TABLE IF NOT EXISTS users (
     phone VARCHAR(50) NULL,
 
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    role VARCHAR(32) NOT NULL DEFAULT 'user',
 
     created_at DATETIME(6) NOT NULL,
     updated_at DATETIME(6) NOT NULL,
