@@ -13,7 +13,6 @@ services:
       - mysql_data:/var/lib/mysql
       # Local dev only: MySQL runs *.sql from this folder on first init.
       - ./services/identity-service/migrations:/docker-entrypoint-initdb.d:ro
-      - ./services/ticket-service/migrations/001_create_ticket_schema.up.sql:/docker-entrypoint-initdb.d/003_create_ticket_schema.up.sql:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
       interval: 5s
@@ -57,6 +56,18 @@ services:
     depends_on:
       identity-service:
         condition: service_started
+      ticket-service:
+        condition: service_started
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ticketbox-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    depends_on:
       ticket-service:
         condition: service_started
 
