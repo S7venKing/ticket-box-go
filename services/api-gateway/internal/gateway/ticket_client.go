@@ -17,48 +17,6 @@ func NewTicketClient(cc grpc.ClientConnInterface) *TicketClient {
 	return &TicketClient{client: ticketv1.NewTicketServiceClient(cc)}
 }
 
-func (c *TicketClient) CreateOrganizer(ctx context.Context, name, email, phone, slug string) (*ticketv1.Organizer, error) {
-	resp, err := c.client.CreateOrganizer(ctx, &ticketv1.CreateOrganizerRequest{
-		Name:  name,
-		Email: email,
-		Phone: phone,
-		Slug:  slug,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return resp.GetOrganizer(), nil
-}
-
-func (c *TicketClient) GetOrganizerByID(ctx context.Context, id string) (*ticketv1.Organizer, error) {
-	resp, err := c.client.GetOrganizerById(ctx, &ticketv1.GetOrganizerByIdRequest{Id: id})
-	if err != nil {
-		return nil, err
-	}
-	return resp.GetOrganizer(), nil
-}
-
-func (c *TicketClient) ListOrganizers(ctx context.Context, offset, limit int32) ([]*ticketv1.Organizer, error) {
-	resp, err := c.client.ListOrganizers(ctx, &ticketv1.ListOrganizersRequest{Offset: offset, Limit: limit})
-	if err != nil {
-		return nil, err
-	}
-	return resp.GetOrganizers(), nil
-}
-
-func (c *TicketClient) UpdateOrganizer(ctx context.Context, id, name, phone, slug string) (*ticketv1.Organizer, error) {
-	resp, err := c.client.UpdateOrganizer(ctx, &ticketv1.UpdateOrganizerRequest{
-		Id:    id,
-		Name:  name,
-		Phone: phone,
-		Slug:  slug,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return resp.GetOrganizer(), nil
-}
-
 func (c *TicketClient) CreateEvent(ctx context.Context, organizerID, title, description, venue string, startAt, endAt time.Time, capacity int32) (*ticketv1.Event, error) {
 	resp, err := c.client.CreateEvent(ctx, &ticketv1.CreateEventRequest{
 		OrganizerId: organizerID,
