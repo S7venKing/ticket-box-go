@@ -1,16 +1,20 @@
 import { Link } from "react-router-dom";
 import { Card } from "../components/ui/Card";
+import { useAppSelector } from "../hooks/redux";
+import { getTranslations } from "../config/language";
+
 export function HomePage() {
+  const language = useAppSelector((s) => s.language.language);
+  const t = getTranslations(language).home;
+
   return (
     <div className="hero">
-      <p className="eyebrow">EVENT PLATFORM</p>
-      <h1>Create. Review. Publish.</h1>
-      <p>Ticket Box centralizes organizer management and admin-approved events.</p>
-      <Link className="button" to="/events">
-        Explore events
-      </Link>
-      <Card title="Workflow">
-        <p>Organizer creates a draft, submits it for review, and an admin publishes it.</p>
+      <p className="eyebrow">{t.eyebrow}</p>
+      <h1>{t.title}</h1>
+      <p>{t.description}</p>
+      <Link className="button" to="/events">{t.explore}</Link>
+      <Card title={t.workflow}>
+        <p>{t.workflowDescription}</p>
       </Card>
     </div>
   );

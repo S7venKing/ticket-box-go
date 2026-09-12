@@ -6,12 +6,14 @@ interface AuthState {
   user: User | null;
   token: string | null;
   loading: boolean;
+  hydrating: boolean;
   error: string | null;
 }
 const initialState: AuthState = {
   user: null,
   token: localStorage.getItem("access_token"),
   loading: false,
+  hydrating: true,
   error: null,
 };
 
@@ -56,9 +58,11 @@ const slice = createSlice({
         s.error = a.error.message ?? "Login failed";
       })
       .addCase(loadMe.fulfilled, (s, a) => {
+        s.hydrating = false;
         s.user = a.payload.user;
       })
       .addCase(loadMe.rejected, (s) => {
+        s.hydrating = false;
         s.user = null;
         s.token = null;
         localStorage.removeItem("access_token");

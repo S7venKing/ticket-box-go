@@ -12,6 +12,7 @@ export interface User {
   full_name: string;
   phone?: string;
   role: Role;
+  organizer_id?: string;
   is_active: boolean;
 }
 export interface Organizer {
