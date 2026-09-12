@@ -33,6 +33,7 @@ const selectUserColumns = `
 		phone,
 		is_active,
 		role,
+		organizer_id,
 		created_at,
 		updated_at
 	FROM users
@@ -51,10 +52,11 @@ func (r *UserRepository) Create(
 			phone,
 			is_active,
 			role,
+			organizer_id,
 			created_at,
 			updated_at
 		)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
 	_, err := r.db.ExecContext(
@@ -67,6 +69,7 @@ func (r *UserRepository) Create(
 		u.Phone,
 		u.IsActive,
 		u.Role,
+		nullableUUID(u.OrganizerID),
 		u.CreatedAt,
 		u.UpdatedAt,
 	)
@@ -96,6 +99,27 @@ func (r *UserRepository) GetByEmail(
 	return scanUser(row)
 }
 
+func (r *UserRepository) List(ctx context.Context, offset, limit int) ([]*user.User, error) {
+	rows, err := r.db.QueryContext(ctx, selectUserColumns+` ORDER BY created_at DESC LIMIT ? OFFSET ?`, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	users := make([]*user.User, 0)
+	for rows.Next() {
+		item, err := scanUserRows(rows)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
 func (r *UserRepository) Update(
 	ctx context.Context,
 	u *user.User,
@@ -109,6 +133,7 @@ func (r *UserRepository) Update(
 			phone = ?,
 			is_active = ?,
 			updated_at = ?
+			,organizer_id = ?
 		WHERE id = ?
 	`
 
@@ -121,6 +146,7 @@ func (r *UserRepository) Update(
 		u.Phone,
 		u.IsActive,
 		u.UpdatedAt,
+		nullableUUID(u.OrganizerID),
 		u.ID.String(),
 	)
 
@@ -159,9 +185,10 @@ func (r *UserRepository) ExistsByEmail(
 
 func scanUser(row *sql.Row) (*user.User, error) {
 	var (
-		u        user.User
-		idString string
-		phone    sql.NullString
+		u           user.User
+		idString    string
+		phone       sql.NullString
+		organizerID sql.NullString
 	)
 
 	err := row.Scan(
@@ -172,6 +199,7 @@ func scanUser(row *sql.Row) (*user.User, error) {
 		&phone,
 		&u.IsActive,
 		&u.Role,
+		&organizerID,
 		&u.CreatedAt,
 		&u.UpdatedAt,
 	)
@@ -191,8 +219,65 @@ func scanUser(row *sql.Row) (*user.User, error) {
 
 	u.ID = id
 	u.Phone = phone.String
+	u.OrganizerID = parseNullableUUID(organizerID)
 
 	return &u, nil
+}
+
+type userScanner interface {
+	Scan(dest ...any) error
+}
+
+func scanUserRows(row userScanner) (*user.User, error) {
+	var (
+		u           user.User
+		idString    string
+		phone       sql.NullString
+		organizerID sql.NullString
+	)
+	if err := row.Scan(
+		&idString,
+		&u.Email,
+		&u.PasswordHash,
+		&u.FullName,
+		&phone,
+		&u.IsActive,
+		&u.Role,
+		&organizerID,
+		&u.CreatedAt,
+		&u.UpdatedAt,
+	); err != nil {
+		return nil, err
+	}
+	id, err := uuid.Parse(idString)
+	if err != nil {
+		return nil, err
+	}
+	u.ID = id
+	u.OrganizerID = parseNullableUUID(organizerID)
+	if phone.Valid {
+		u.Phone = phone.String
+	}
+
+	return &u, nil
+}
+
+func nullableUUID(id *uuid.UUID) any {
+	if id == nil {
+		return nil
+	}
+	return id.String()
+}
+
+func parseNullableUUID(value sql.NullString) *uuid.UUID {
+	if !value.Valid || value.String == "" {
+		return nil
+	}
+	id, err := uuid.Parse(value.String)
+	if err != nil {
+		return nil
+	}
+	return &id
 }
 
 // isDuplicateEntry translates the driver-specific unique-violation into a

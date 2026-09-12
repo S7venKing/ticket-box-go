@@ -21,11 +21,19 @@ type IdentityGatewayClient interface {
 	GetUserByID(ctx context.Context, id string) (*identityv1.User, error)
 }
 
+type IdentityUserListClient interface {
+	ListUsers(ctx context.Context, offset, limit int32) ([]*identityv1.User, error)
+}
+type IdentityMembershipClient interface {
+	AssignUserToOrganizer(ctx context.Context, userID, organizerID string) (*identityv1.User, error)
+}
+type IdentityOrganizerClient interface {
+	CreateOrganizer(ctx context.Context, name, email, phone, slug string) (*identityv1.Organizer, error)
+	GetOrganizerByID(ctx context.Context, id string) (*identityv1.Organizer, error)
+	ListOrganizers(ctx context.Context, offset, limit int32) ([]*identityv1.Organizer, error)
+	UpdateOrganizer(ctx context.Context, id, name, email, phone, slug string) (*identityv1.Organizer, error)
+}
 type TicketGatewayClient interface {
-	CreateOrganizer(ctx context.Context, name, email, phone, slug string) (*ticketv1.Organizer, error)
-	GetOrganizerByID(ctx context.Context, id string) (*ticketv1.Organizer, error)
-	ListOrganizers(ctx context.Context, offset, limit int32) ([]*ticketv1.Organizer, error)
-	UpdateOrganizer(ctx context.Context, id, name, phone, slug string) (*ticketv1.Organizer, error)
 	CreateEvent(ctx context.Context, organizerID, title, description, venue string, startAt, endAt time.Time, capacity int32) (*ticketv1.Event, error)
 	GetEventByID(ctx context.Context, id string) (*ticketv1.Event, error)
 	ListEvents(ctx context.Context, offset, limit int32) ([]*ticketv1.Event, error)
@@ -34,8 +42,31 @@ type TicketGatewayClient interface {
 	ApproveEvent(ctx context.Context, id string) (*ticketv1.Event, error)
 }
 
+func withCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		origin := r.Header.Get("Origin")
+		if origin != "" {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+			w.Header().Set("Vary", "Origin")
+		} else {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+		}
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Authorization, Content-Type, X-Requested-With")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func NewMux(tokenService *auth.TokenService, identityClient IdentityGatewayClient, ticketClient TicketGatewayClient) *http.ServeMux {
 	mux := http.NewServeMux()
+	organizerClient, organizerAvailable := identityClient.(IdentityOrganizerClient)
 
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -158,17 +189,6 @@ func NewMux(tokenService *auth.TokenService, identityClient IdentityGatewayClien
 		}
 	}
 
-	requireRole := func(role string, next http.HandlerFunc) http.HandlerFunc {
-		return AuthMiddleware(tokenService, func(w http.ResponseWriter, r *http.Request) {
-			actual, _ := r.Context().Value(userRoleContextKey{}).(string)
-			if actual != role && actual != "admin" {
-				http.Error(w, "forbidden", http.StatusForbidden)
-				return
-			}
-			next(w, r)
-		})
-	}
-
 	requireAdmin := func(next http.HandlerFunc) http.HandlerFunc {
 		return AuthMiddleware(tokenService, func(w http.ResponseWriter, r *http.Request) {
 			role, _ := r.Context().Value(userRoleContextKey{}).(string)
@@ -185,14 +205,47 @@ func NewMux(tokenService *auth.TokenService, identityClient IdentityGatewayClien
 		if role == "admin" {
 			return true
 		}
-		email, _ := r.Context().Value(userEmailContextKey{}).(string)
-		organizer, err := ticketClient.GetOrganizerByID(r.Context(), organizerID)
-		return err == nil && strings.EqualFold(email, organizer.GetEmail())
+		userID, _ := r.Context().Value(userIDContextKey{}).(string)
+		user, err := identityClient.GetUserByID(r.Context(), userID)
+		return err == nil && user.GetOrganizerId() != "" && user.GetOrganizerId() == organizerID
+	}
+
+	requireOrganizer := func(next http.HandlerFunc) http.HandlerFunc {
+		return AuthMiddleware(tokenService, func(w http.ResponseWriter, r *http.Request) {
+			role, _ := r.Context().Value(userRoleContextKey{}).(string)
+			if role == "admin" {
+				next(w, r)
+				return
+			}
+			userID, _ := r.Context().Value(userIDContextKey{}).(string)
+			user, err := identityClient.GetUserByID(r.Context(), userID)
+			if err != nil || user.GetOrganizerId() == "" {
+				http.Error(w, "organizer membership required", http.StatusForbidden)
+				return
+			}
+			next(w, r)
+		})
 	}
 
 	mux.HandleFunc("/me", AuthMiddleware(tokenService, protected))
 	mux.HandleFunc("/profile", AuthMiddleware(tokenService, protected))
 	mux.HandleFunc("/users/me", AuthMiddleware(tokenService, protected))
+	mux.HandleFunc("GET /admin/users", requireAdmin(func(w http.ResponseWriter, r *http.Request) {
+		listClient, ok := identityClient.(IdentityUserListClient)
+		if !ok {
+			http.Error(w, "user listing is unavailable", http.StatusInternalServerError)
+			return
+		}
+		users, err := listClient.ListUsers(r.Context(), 0, 100)
+		if err != nil {
+			http.Error(w, "failed to load users", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(map[string]any{"users": users}); err != nil {
+			http.Error(w, "failed to encode response", http.StatusInternalServerError)
+		}
+	}))
 
 	mux.HandleFunc("POST /admin/organizers", requireAdmin(func(w http.ResponseWriter, r *http.Request) {
 		var req struct {
@@ -211,19 +264,54 @@ func NewMux(tokenService *auth.TokenService, identityClient IdentityGatewayClien
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		organizer, err := ticketClient.CreateOrganizer(r.Context(), req.Name, req.Email, req.Phone, req.Slug)
+		if !organizerAvailable {
+			http.Error(w, "organizer management unavailable", http.StatusNotImplemented)
+			return
+		}
+		organizer, err := organizerClient.CreateOrganizer(r.Context(), req.Name, req.Email, req.Phone, req.Slug)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
+		}
+		if memberClient, ok := identityClient.(IdentityMembershipClient); ok {
+			if _, err := memberClient.AssignUserToOrganizer(r.Context(), account.GetId(), organizer.GetId()); err != nil {
+				http.Error(w, "failed to assign organizer membership", http.StatusBadGateway)
+				return
+			}
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		_ = json.NewEncoder(w).Encode(map[string]any{"account": account, "organizer": organizer})
 	}))
+	mux.HandleFunc("POST /admin/organizers/{id}/members", requireAdmin(func(w http.ResponseWriter, r *http.Request) {
+		memberClient, ok := identityClient.(IdentityMembershipClient)
+		if !ok {
+			http.Error(w, "membership management unavailable", http.StatusNotImplemented)
+			return
+		}
+		var req struct {
+			UserID string `json:"user_id"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.UserID == "" {
+			http.Error(w, "invalid request body", http.StatusBadRequest)
+			return
+		}
+		user, err := memberClient.AssignUserToOrganizer(r.Context(), req.UserID, r.PathValue("id"))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]any{"user": user})
+	}))
 
 	mux.HandleFunc("GET /organizers", func(w http.ResponseWriter, r *http.Request) {
+		if !organizerAvailable {
+			http.Error(w, "organizer management unavailable", http.StatusNotImplemented)
+			return
+		}
 		offset, limit := parseOffsetLimit(r)
-		organizers, err := ticketClient.ListOrganizers(r.Context(), int32(offset), int32(limit))
+		organizers, err := organizerClient.ListOrganizers(r.Context(), int32(offset), int32(limit))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadGateway)
 			return
@@ -244,7 +332,11 @@ func NewMux(tokenService *auth.TokenService, identityClient IdentityGatewayClien
 			http.Error(w, "invalid request body", http.StatusBadRequest)
 			return
 		}
-		organizer, err := ticketClient.CreateOrganizer(r.Context(), req.Name, req.Email, req.Phone, req.Slug)
+		if !organizerAvailable {
+			http.Error(w, "organizer management unavailable", http.StatusNotImplemented)
+			return
+		}
+		organizer, err := organizerClient.CreateOrganizer(r.Context(), req.Name, req.Email, req.Phone, req.Slug)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -256,8 +348,12 @@ func NewMux(tokenService *auth.TokenService, identityClient IdentityGatewayClien
 		}
 	}))
 	mux.HandleFunc("GET /organizers/{id}", func(w http.ResponseWriter, r *http.Request) {
+		if !organizerAvailable {
+			http.Error(w, "organizer management unavailable", http.StatusNotImplemented)
+			return
+		}
 		id := r.PathValue("id")
-		organizer, err := ticketClient.GetOrganizerByID(r.Context(), id)
+		organizer, err := organizerClient.GetOrganizerByID(r.Context(), id)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
@@ -271,6 +367,7 @@ func NewMux(tokenService *auth.TokenService, identityClient IdentityGatewayClien
 		id := r.PathValue("id")
 		var req struct {
 			Name  string `json:"name"`
+			Email string `json:"email"`
 			Phone string `json:"phone"`
 			Slug  string `json:"slug"`
 		}
@@ -278,7 +375,11 @@ func NewMux(tokenService *auth.TokenService, identityClient IdentityGatewayClien
 			http.Error(w, "invalid request body", http.StatusBadRequest)
 			return
 		}
-		organizer, err := ticketClient.UpdateOrganizer(r.Context(), id, req.Name, req.Phone, req.Slug)
+		if !organizerAvailable {
+			http.Error(w, "organizer management unavailable", http.StatusNotImplemented)
+			return
+		}
+		organizer, err := organizerClient.UpdateOrganizer(r.Context(), id, req.Name, req.Email, req.Phone, req.Slug)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -289,19 +390,42 @@ func NewMux(tokenService *auth.TokenService, identityClient IdentityGatewayClien
 		}
 	}))
 
-	mux.HandleFunc("GET /events", func(w http.ResponseWriter, r *http.Request) {
+	listEvents := func(w http.ResponseWriter, r *http.Request) {
 		offset, limit := parseOffsetLimit(r)
 		events, err := ticketClient.ListEvents(r.Context(), int32(offset), int32(limit))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadGateway)
 			return
 		}
+		role, _ := r.Context().Value(userRoleContextKey{}).(string)
+		if role != "" && role != "admin" {
+			userID, _ := r.Context().Value(userIDContextKey{}).(string)
+			user, userErr := identityClient.GetUserByID(r.Context(), userID)
+			if userErr != nil || user.GetOrganizerId() == "" {
+				http.Error(w, "organizer membership required", http.StatusForbidden)
+				return
+			}
+			filtered := events[:0]
+			for _, event := range events {
+				if event.GetOrganizerId() == user.GetOrganizerId() {
+					filtered = append(filtered, event)
+				}
+			}
+			events = filtered
+		}
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(map[string]any{"events": events}); err != nil {
 			http.Error(w, "failed to encode response", http.StatusInternalServerError)
 		}
+	}
+	mux.HandleFunc("GET /events", func(w http.ResponseWriter, r *http.Request) {
+		if strings.TrimSpace(r.Header.Get("Authorization")) == "" {
+			listEvents(w, r)
+			return
+		}
+		AuthMiddleware(tokenService, listEvents)(w, r)
 	})
-	mux.HandleFunc("POST /events", requireRole("organizer", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("POST /events", requireOrganizer(func(w http.ResponseWriter, r *http.Request) {
 		var req struct {
 			OrganizerID string `json:"organizer_id"`
 			Title       string `json:"title"`
@@ -347,12 +471,26 @@ func NewMux(tokenService *auth.TokenService, identityClient IdentityGatewayClien
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
+		if strings.TrimSpace(r.Header.Get("Authorization")) != "" {
+			claims, tokenErr := tokenService.Validate(strings.TrimSpace(strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer")))
+			if tokenErr != nil {
+				http.Error(w, "invalid token", http.StatusUnauthorized)
+				return
+			}
+			if claims.Role != "admin" {
+				user, userErr := identityClient.GetUserByID(r.Context(), claims.UserID)
+				if userErr != nil || user.GetOrganizerId() == "" || user.GetOrganizerId() != event.GetOrganizerId() {
+					http.Error(w, "forbidden", http.StatusForbidden)
+					return
+				}
+			}
+		}
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(map[string]any{"event": event}); err != nil {
 			http.Error(w, "failed to encode response", http.StatusInternalServerError)
 		}
 	})
-	mux.HandleFunc("POST /events/{id}/submit", requireRole("organizer", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("POST /events/{id}/submit", requireOrganizer(func(w http.ResponseWriter, r *http.Request) {
 		item, err := ticketClient.GetEventByID(r.Context(), r.PathValue("id"))
 		if err != nil || !organizerOwned(r, item.GetOrganizerId()) {
 			http.Error(w, "organizer does not own this event", http.StatusForbidden)
@@ -419,7 +557,7 @@ func RunHTTPServer(tokenService *auth.TokenService, identityClient *IdentityClie
 	}
 
 	log.Printf("api-gateway listening on :%s", port)
-	if err := http.ListenAndServe(":"+port, mux); err != nil {
+	if err := http.ListenAndServe(":"+port, withCORS(mux)); err != nil {
 		log.Fatal(err)
 	}
 }

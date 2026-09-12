@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/S7venKing/ticket-box-go/services/identity-service/internal/application/command"
+	"github.com/S7venKing/ticket-box-go/services/identity-service/internal/domain/organizer"
 	"github.com/S7venKing/ticket-box-go/services/identity-service/internal/domain/user"
 )
 
@@ -40,6 +41,20 @@ func knownError(err error) (codes.Code, string, bool) {
 
 	case errors.Is(err, user.ErrEmailAlreadyExists):
 		return codes.AlreadyExists, "email already exists", true
+	case errors.Is(err, organizer.ErrOrganizerNotFound):
+		return codes.NotFound, "organizer not found", true
+	case errors.Is(err, organizer.ErrOrganizerDuplicate):
+		return codes.AlreadyExists, "organizer email or slug already exists", true
+	case errors.Is(err, organizer.ErrNameRequired):
+		return codes.InvalidArgument, "organizer name is required", true
+	case errors.Is(err, organizer.ErrEmailRequired):
+		return codes.InvalidArgument, "organizer email is required", true
+	case errors.Is(err, organizer.ErrInvalidEmail):
+		return codes.InvalidArgument, "organizer email is invalid", true
+	case errors.Is(err, organizer.ErrSlugRequired):
+		return codes.InvalidArgument, "organizer slug is required", true
+	case errors.Is(err, organizer.ErrInvalidSlug):
+		return codes.InvalidArgument, "organizer slug is invalid", true
 
 	case errors.Is(err, user.ErrEmailRequired):
 		return codes.InvalidArgument, "email is required", true

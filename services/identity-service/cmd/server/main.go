@@ -61,6 +61,7 @@ func run() error {
 	defer db.Close()
 
 	userRepository := mysql.NewUserRepository(db)
+	organizerRepository := mysql.NewOrganizerRepository(db)
 	passwordHasher := password.NewArgon2Hasher()
 
 	// ---- application + inbound adapter ----
@@ -74,6 +75,14 @@ func run() error {
 		command.NewUpdateProfileHandler(userRepository),
 		command.NewActivateUserHandler(userRepository),
 		command.NewDeactivateUserHandler(userRepository),
+		query.NewListUsersHandler(userRepository),
+	)
+	identityServer.SetAssignOrganizerHandler(command.NewAssignUserToOrganizerHandler(userRepository))
+	identityServer.SetOrganizerHandlers(
+		command.NewCreateOrganizerHandler(organizerRepository),
+		query.NewGetOrganizerHandler(organizerRepository),
+		query.NewListOrganizersHandler(organizerRepository),
+		command.NewUpdateOrganizerHandler(organizerRepository),
 	)
 
 	// ---- gRPC server ----

@@ -9,25 +9,27 @@ import (
 )
 
 type UserDTO struct {
-	ID        uuid.UUID
-	Email     string
-	FullName  string
-	Phone     string
-	Role      string
-	IsActive  bool
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID          uuid.UUID
+	Email       string
+	FullName    string
+	Phone       string
+	Role        string
+	OrganizerID *uuid.UUID
+	IsActive    bool
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 func FromUser(u *user.User) *UserDTO {
 	return &UserDTO{
-		ID:        u.ID,
-		Email:     u.Email,
-		FullName:  u.FullName,
-		Phone:     u.Phone,
-		Role:      u.Role,
-		IsActive:  u.IsActive,
-		CreatedAt: u.CreatedAt,
-		UpdatedAt: u.UpdatedAt,
+		ID:          u.ID,
+		Email:       u.Email,
+		FullName:    u.FullName,
+		Phone:       u.Phone,
+		Role:        u.Role,
+		OrganizerID: u.OrganizerID,
+		IsActive:    u.IsActive,
+		CreatedAt:   u.CreatedAt,
+		UpdatedAt:   u.UpdatedAt,
 	}
 }

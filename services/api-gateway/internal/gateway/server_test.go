@@ -16,9 +16,11 @@ import (
 )
 
 type fakeIdentityClient struct {
-	createUserFn func(context.Context, string, string, string, string, string) (*identityv1.User, error)
-	authFn       func(context.Context, string, string) (*identityv1.User, string, error)
-	getUserFn    func(context.Context, string) (*identityv1.User, error)
+	createUserFn      func(context.Context, string, string, string, string, string) (*identityv1.User, error)
+	authFn            func(context.Context, string, string) (*identityv1.User, string, error)
+	getUserFn         func(context.Context, string) (*identityv1.User, error)
+	createOrganizerFn func(context.Context, string, string, string, string) (*identityv1.Organizer, error)
+	listOrganizersFn  func(context.Context, int32, int32) ([]*identityv1.Organizer, error)
 }
 
 func (f *fakeIdentityClient) CreateUser(ctx context.Context, email, password, fullName, phone, role string) (*identityv1.User, error) {
@@ -41,46 +43,32 @@ func (f *fakeIdentityClient) GetUserByID(ctx context.Context, id string) (*ident
 	}
 	return &identityv1.User{Id: id, Email: "user@example.com"}, nil
 }
-
-type fakeTicketClient struct {
-	createOrganizerFn  func(context.Context, string, string, string, string) (*ticketv1.Organizer, error)
-	getOrganizerByIDFn func(context.Context, string) (*ticketv1.Organizer, error)
-	listOrganizersFn   func(context.Context, int32, int32) ([]*ticketv1.Organizer, error)
-	updateOrganizerFn  func(context.Context, string, string, string, string) (*ticketv1.Organizer, error)
-	createEventFn      func(context.Context, string, string, string, string, time.Time, time.Time, int32) (*ticketv1.Event, error)
-	getEventByIDFn     func(context.Context, string) (*ticketv1.Event, error)
-	listEventsFn       func(context.Context, int32, int32) ([]*ticketv1.Event, error)
-	publishEventFn     func(context.Context, string) (*ticketv1.Event, error)
-	submitEventFn      func(context.Context, string) (*ticketv1.Event, error)
-	approveEventFn     func(context.Context, string) (*ticketv1.Event, error)
-}
-
-func (f *fakeTicketClient) CreateOrganizer(ctx context.Context, name, email, phone, slug string) (*ticketv1.Organizer, error) {
+func (f *fakeIdentityClient) CreateOrganizer(ctx context.Context, name, email, phone, slug string) (*identityv1.Organizer, error) {
 	if f.createOrganizerFn != nil {
 		return f.createOrganizerFn(ctx, name, email, phone, slug)
 	}
-	return &ticketv1.Organizer{Id: "org-1", Name: name, Email: email, Phone: phone, Slug: slug, IsActive: true}, nil
+	return &identityv1.Organizer{Id: "org-1", Name: name, Email: email, Phone: phone, Slug: slug, IsActive: true}, nil
 }
-
-func (f *fakeTicketClient) GetOrganizerByID(ctx context.Context, id string) (*ticketv1.Organizer, error) {
-	if f.getOrganizerByIDFn != nil {
-		return f.getOrganizerByIDFn(ctx, id)
-	}
-	return &ticketv1.Organizer{Id: id, Name: "Organizer One", Email: "organizer@example.com", IsActive: true}, nil
+func (f *fakeIdentityClient) GetOrganizerByID(ctx context.Context, id string) (*identityv1.Organizer, error) {
+	return &identityv1.Organizer{Id: id, Name: "Organizer One", Email: "organizer@example.com", IsActive: true}, nil
 }
-
-func (f *fakeTicketClient) ListOrganizers(ctx context.Context, offset, limit int32) ([]*ticketv1.Organizer, error) {
+func (f *fakeIdentityClient) ListOrganizers(ctx context.Context, offset, limit int32) ([]*identityv1.Organizer, error) {
 	if f.listOrganizersFn != nil {
 		return f.listOrganizersFn(ctx, offset, limit)
 	}
-	return []*ticketv1.Organizer{{Id: "org-1", Name: "Organizer One", Email: "organizer@example.com", IsActive: true}}, nil
+	return []*identityv1.Organizer{{Id: "org-1", Name: "Organizer One", Email: "organizer@example.com", IsActive: true}}, nil
+}
+func (f *fakeIdentityClient) UpdateOrganizer(ctx context.Context, id, name, email, phone, slug string) (*identityv1.Organizer, error) {
+	return &identityv1.Organizer{Id: id, Name: name, Email: email, Phone: phone, Slug: slug, IsActive: true}, nil
 }
 
-func (f *fakeTicketClient) UpdateOrganizer(ctx context.Context, id, name, phone, slug string) (*ticketv1.Organizer, error) {
-	if f.updateOrganizerFn != nil {
-		return f.updateOrganizerFn(ctx, id, name, phone, slug)
-	}
-	return &ticketv1.Organizer{Id: id, Name: name, Phone: phone, Slug: slug, IsActive: true}, nil
+type fakeTicketClient struct {
+	createEventFn  func(context.Context, string, string, string, string, time.Time, time.Time, int32) (*ticketv1.Event, error)
+	getEventByIDFn func(context.Context, string) (*ticketv1.Event, error)
+	listEventsFn   func(context.Context, int32, int32) ([]*ticketv1.Event, error)
+	publishEventFn func(context.Context, string) (*ticketv1.Event, error)
+	submitEventFn  func(context.Context, string) (*ticketv1.Event, error)
+	approveEventFn func(context.Context, string) (*ticketv1.Event, error)
 }
 
 func (f *fakeTicketClient) CreateEvent(ctx context.Context, organizerID, title, description, venue string, startAt, endAt time.Time, capacity int32) (*ticketv1.Event, error) {
@@ -191,16 +179,20 @@ func TestRegisterLoginLogoutFlow(t *testing.T) {
 
 func TestTicketOrganizerAndEventRoutes(t *testing.T) {
 	service := auth.NewTokenService("test-secret")
-	identityClient := &fakeIdentityClient{}
-	ticketClient := &fakeTicketClient{
-		createOrganizerFn: func(ctx context.Context, name, email, phone, slug string) (*ticketv1.Organizer, error) {
-			return &ticketv1.Organizer{Id: "org-1", Name: name, Email: email, Phone: phone, Slug: slug, IsActive: true}, nil
+	identityClient := &fakeIdentityClient{
+		createOrganizerFn: func(ctx context.Context, name, email, phone, slug string) (*identityv1.Organizer, error) {
+			return &identityv1.Organizer{Id: "org-1", Name: name, Email: email, Phone: phone, Slug: slug, IsActive: true}, nil
 		},
+		listOrganizersFn: func(ctx context.Context, offset, limit int32) ([]*identityv1.Organizer, error) {
+			return []*identityv1.Organizer{{Id: "org-1", Name: "Zeta", Email: "organizer@example.com", IsActive: true}}, nil
+		},
+		getUserFn: func(ctx context.Context, id string) (*identityv1.User, error) {
+			return &identityv1.User{Id: id, Email: "organizer@example.com", Role: "organizer", OrganizerId: "org-1"}, nil
+		},
+	}
+	ticketClient := &fakeTicketClient{
 		createEventFn: func(ctx context.Context, organizerID, title, description, venue string, startAt, endAt time.Time, capacity int32) (*ticketv1.Event, error) {
 			return &ticketv1.Event{Id: "evt-1", OrganizerId: organizerID, Title: title, Description: description, Venue: venue, Capacity: capacity, Status: ticketv1.EventStatus_EVENT_STATUS_DRAFT}, nil
-		},
-		listOrganizersFn: func(ctx context.Context, offset, limit int32) ([]*ticketv1.Organizer, error) {
-			return []*ticketv1.Organizer{{Id: "org-1", Name: "Zeta", Email: "organizer@example.com", IsActive: true}}, nil
 		},
 		listEventsFn: func(ctx context.Context, offset, limit int32) ([]*ticketv1.Event, error) {
 			return []*ticketv1.Event{{Id: "evt-1", OrganizerId: "org-1", Title: "Launch Night", Venue: "HCM", Status: ticketv1.EventStatus_EVENT_STATUS_DRAFT}}, nil

@@ -15,6 +15,7 @@ service IdentityService {
   rpc GetUserById(GetUserByIdRequest) returns (GetUserByIdResponse);
 
   rpc GetUserByEmail(GetUserByEmailRequest) returns (GetUserByEmailResponse);
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
 
   rpc AuthenticateUser(AuthenticateUserRequest) returns (AuthenticateUserResponse);
 
@@ -23,6 +24,12 @@ service IdentityService {
   rpc ActivateUser(ActivateUserRequest) returns (ActivateUserResponse);
 
   rpc DeactivateUser(DeactivateUserRequest) returns (DeactivateUserResponse);
+  rpc AssignUserToOrganizer(AssignUserToOrganizerRequest) returns (AssignUserToOrganizerResponse);
+
+  rpc CreateOrganizer(CreateOrganizerRequest) returns (CreateOrganizerResponse);
+  rpc GetOrganizerById(GetOrganizerByIdRequest) returns (GetOrganizerByIdResponse);
+  rpc ListOrganizers(ListOrganizersRequest) returns (ListOrganizersResponse);
+  rpc UpdateOrganizer(UpdateOrganizerRequest) returns (UpdateOrganizerResponse);
 }
 
 // =========================
@@ -40,6 +47,7 @@ message User {
   google.protobuf.Timestamp created_at = 6;
   google.protobuf.Timestamp updated_at = 7;
   string role = 8;
+  string organizer_id = 9;
 }
 
 // =========================
@@ -81,6 +89,15 @@ message GetUserByEmailRequest {
 
 message GetUserByEmailResponse {
   User user = 1;
+}
+
+message ListUsersRequest {
+  int32 offset = 1;
+  int32 limit = 2;
+}
+
+message ListUsersResponse {
+  repeated User users = 1;
 }
 
 // =========================
@@ -134,3 +151,50 @@ message DeactivateUserRequest {
 message DeactivateUserResponse {
   User user = 1;
 }
+
+message AssignUserToOrganizerRequest {
+  string user_id = 1;
+  string organizer_id = 2;
+}
+
+message AssignUserToOrganizerResponse {
+  User user = 1;
+}
+
+// =========================
+// Organizer
+// =========================
+
+message Organizer {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  string phone = 4;
+  string slug = 5;
+  bool is_active = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+message CreateOrganizerRequest {
+  string name = 1;
+  string email = 2;
+  string phone = 3;
+  string slug = 4;
+}
+
+message CreateOrganizerResponse { Organizer organizer = 1; }
+message GetOrganizerByIdRequest { string id = 1; }
+message GetOrganizerByIdResponse { Organizer organizer = 1; }
+message ListOrganizersRequest { int32 offset = 1; int32 limit = 2; }
+message ListOrganizersResponse { repeated Organizer organizers = 1; }
+
+message UpdateOrganizerRequest {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  string phone = 4;
+  string slug = 5;
+}
+
+message UpdateOrganizerResponse { Organizer organizer = 1; }

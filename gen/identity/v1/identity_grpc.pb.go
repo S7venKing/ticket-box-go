@@ -19,13 +19,19 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	IdentityService_CreateUser_FullMethodName        = "/identity.v1.IdentityService/CreateUser"
-	IdentityService_GetUserById_FullMethodName       = "/identity.v1.IdentityService/GetUserById"
-	IdentityService_GetUserByEmail_FullMethodName    = "/identity.v1.IdentityService/GetUserByEmail"
-	IdentityService_AuthenticateUser_FullMethodName  = "/identity.v1.IdentityService/AuthenticateUser"
-	IdentityService_UpdateUserProfile_FullMethodName = "/identity.v1.IdentityService/UpdateUserProfile"
-	IdentityService_ActivateUser_FullMethodName      = "/identity.v1.IdentityService/ActivateUser"
-	IdentityService_DeactivateUser_FullMethodName    = "/identity.v1.IdentityService/DeactivateUser"
+	IdentityService_CreateUser_FullMethodName            = "/identity.v1.IdentityService/CreateUser"
+	IdentityService_GetUserById_FullMethodName           = "/identity.v1.IdentityService/GetUserById"
+	IdentityService_GetUserByEmail_FullMethodName        = "/identity.v1.IdentityService/GetUserByEmail"
+	IdentityService_ListUsers_FullMethodName             = "/identity.v1.IdentityService/ListUsers"
+	IdentityService_AuthenticateUser_FullMethodName      = "/identity.v1.IdentityService/AuthenticateUser"
+	IdentityService_UpdateUserProfile_FullMethodName     = "/identity.v1.IdentityService/UpdateUserProfile"
+	IdentityService_ActivateUser_FullMethodName          = "/identity.v1.IdentityService/ActivateUser"
+	IdentityService_DeactivateUser_FullMethodName        = "/identity.v1.IdentityService/DeactivateUser"
+	IdentityService_AssignUserToOrganizer_FullMethodName = "/identity.v1.IdentityService/AssignUserToOrganizer"
+	IdentityService_CreateOrganizer_FullMethodName       = "/identity.v1.IdentityService/CreateOrganizer"
+	IdentityService_GetOrganizerById_FullMethodName      = "/identity.v1.IdentityService/GetOrganizerById"
+	IdentityService_ListOrganizers_FullMethodName        = "/identity.v1.IdentityService/ListOrganizers"
+	IdentityService_UpdateOrganizer_FullMethodName       = "/identity.v1.IdentityService/UpdateOrganizer"
 )
 
 // IdentityServiceClient is the client API for IdentityService service.
@@ -39,10 +45,16 @@ type IdentityServiceClient interface {
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error)
 	GetUserById(ctx context.Context, in *GetUserByIdRequest, opts ...grpc.CallOption) (*GetUserByIdResponse, error)
 	GetUserByEmail(ctx context.Context, in *GetUserByEmailRequest, opts ...grpc.CallOption) (*GetUserByEmailResponse, error)
+	ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error)
 	AuthenticateUser(ctx context.Context, in *AuthenticateUserRequest, opts ...grpc.CallOption) (*AuthenticateUserResponse, error)
 	UpdateUserProfile(ctx context.Context, in *UpdateUserProfileRequest, opts ...grpc.CallOption) (*UpdateUserProfileResponse, error)
 	ActivateUser(ctx context.Context, in *ActivateUserRequest, opts ...grpc.CallOption) (*ActivateUserResponse, error)
 	DeactivateUser(ctx context.Context, in *DeactivateUserRequest, opts ...grpc.CallOption) (*DeactivateUserResponse, error)
+	AssignUserToOrganizer(ctx context.Context, in *AssignUserToOrganizerRequest, opts ...grpc.CallOption) (*AssignUserToOrganizerResponse, error)
+	CreateOrganizer(ctx context.Context, in *CreateOrganizerRequest, opts ...grpc.CallOption) (*CreateOrganizerResponse, error)
+	GetOrganizerById(ctx context.Context, in *GetOrganizerByIdRequest, opts ...grpc.CallOption) (*GetOrganizerByIdResponse, error)
+	ListOrganizers(ctx context.Context, in *ListOrganizersRequest, opts ...grpc.CallOption) (*ListOrganizersResponse, error)
+	UpdateOrganizer(ctx context.Context, in *UpdateOrganizerRequest, opts ...grpc.CallOption) (*UpdateOrganizerResponse, error)
 }
 
 type identityServiceClient struct {
@@ -77,6 +89,16 @@ func (c *identityServiceClient) GetUserByEmail(ctx context.Context, in *GetUserB
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetUserByEmailResponse)
 	err := c.cc.Invoke(ctx, IdentityService_GetUserByEmail_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *identityServiceClient) ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListUsersResponse)
+	err := c.cc.Invoke(ctx, IdentityService_ListUsers_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -123,6 +145,56 @@ func (c *identityServiceClient) DeactivateUser(ctx context.Context, in *Deactiva
 	return out, nil
 }
 
+func (c *identityServiceClient) AssignUserToOrganizer(ctx context.Context, in *AssignUserToOrganizerRequest, opts ...grpc.CallOption) (*AssignUserToOrganizerResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AssignUserToOrganizerResponse)
+	err := c.cc.Invoke(ctx, IdentityService_AssignUserToOrganizer_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *identityServiceClient) CreateOrganizer(ctx context.Context, in *CreateOrganizerRequest, opts ...grpc.CallOption) (*CreateOrganizerResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateOrganizerResponse)
+	err := c.cc.Invoke(ctx, IdentityService_CreateOrganizer_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *identityServiceClient) GetOrganizerById(ctx context.Context, in *GetOrganizerByIdRequest, opts ...grpc.CallOption) (*GetOrganizerByIdResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetOrganizerByIdResponse)
+	err := c.cc.Invoke(ctx, IdentityService_GetOrganizerById_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *identityServiceClient) ListOrganizers(ctx context.Context, in *ListOrganizersRequest, opts ...grpc.CallOption) (*ListOrganizersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListOrganizersResponse)
+	err := c.cc.Invoke(ctx, IdentityService_ListOrganizers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *identityServiceClient) UpdateOrganizer(ctx context.Context, in *UpdateOrganizerRequest, opts ...grpc.CallOption) (*UpdateOrganizerResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateOrganizerResponse)
+	err := c.cc.Invoke(ctx, IdentityService_UpdateOrganizer_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // IdentityServiceServer is the server API for IdentityService service.
 // All implementations must embed UnimplementedIdentityServiceServer
 // for forward compatibility.
@@ -134,10 +206,16 @@ type IdentityServiceServer interface {
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
 	GetUserById(context.Context, *GetUserByIdRequest) (*GetUserByIdResponse, error)
 	GetUserByEmail(context.Context, *GetUserByEmailRequest) (*GetUserByEmailResponse, error)
+	ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error)
 	AuthenticateUser(context.Context, *AuthenticateUserRequest) (*AuthenticateUserResponse, error)
 	UpdateUserProfile(context.Context, *UpdateUserProfileRequest) (*UpdateUserProfileResponse, error)
 	ActivateUser(context.Context, *ActivateUserRequest) (*ActivateUserResponse, error)
 	DeactivateUser(context.Context, *DeactivateUserRequest) (*DeactivateUserResponse, error)
+	AssignUserToOrganizer(context.Context, *AssignUserToOrganizerRequest) (*AssignUserToOrganizerResponse, error)
+	CreateOrganizer(context.Context, *CreateOrganizerRequest) (*CreateOrganizerResponse, error)
+	GetOrganizerById(context.Context, *GetOrganizerByIdRequest) (*GetOrganizerByIdResponse, error)
+	ListOrganizers(context.Context, *ListOrganizersRequest) (*ListOrganizersResponse, error)
+	UpdateOrganizer(context.Context, *UpdateOrganizerRequest) (*UpdateOrganizerResponse, error)
 	mustEmbedUnimplementedIdentityServiceServer()
 }
 
@@ -157,6 +235,9 @@ func (UnimplementedIdentityServiceServer) GetUserById(context.Context, *GetUserB
 func (UnimplementedIdentityServiceServer) GetUserByEmail(context.Context, *GetUserByEmailRequest) (*GetUserByEmailResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUserByEmail not implemented")
 }
+func (UnimplementedIdentityServiceServer) ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListUsers not implemented")
+}
 func (UnimplementedIdentityServiceServer) AuthenticateUser(context.Context, *AuthenticateUserRequest) (*AuthenticateUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AuthenticateUser not implemented")
 }
@@ -168,6 +249,21 @@ func (UnimplementedIdentityServiceServer) ActivateUser(context.Context, *Activat
 }
 func (UnimplementedIdentityServiceServer) DeactivateUser(context.Context, *DeactivateUserRequest) (*DeactivateUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeactivateUser not implemented")
+}
+func (UnimplementedIdentityServiceServer) AssignUserToOrganizer(context.Context, *AssignUserToOrganizerRequest) (*AssignUserToOrganizerResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AssignUserToOrganizer not implemented")
+}
+func (UnimplementedIdentityServiceServer) CreateOrganizer(context.Context, *CreateOrganizerRequest) (*CreateOrganizerResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateOrganizer not implemented")
+}
+func (UnimplementedIdentityServiceServer) GetOrganizerById(context.Context, *GetOrganizerByIdRequest) (*GetOrganizerByIdResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetOrganizerById not implemented")
+}
+func (UnimplementedIdentityServiceServer) ListOrganizers(context.Context, *ListOrganizersRequest) (*ListOrganizersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListOrganizers not implemented")
+}
+func (UnimplementedIdentityServiceServer) UpdateOrganizer(context.Context, *UpdateOrganizerRequest) (*UpdateOrganizerResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateOrganizer not implemented")
 }
 func (UnimplementedIdentityServiceServer) mustEmbedUnimplementedIdentityServiceServer() {}
 func (UnimplementedIdentityServiceServer) testEmbeddedByValue()                         {}
@@ -244,6 +340,24 @@ func _IdentityService_GetUserByEmail_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _IdentityService_ListUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListUsersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityServiceServer).ListUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IdentityService_ListUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdentityServiceServer).ListUsers(ctx, req.(*ListUsersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _IdentityService_AuthenticateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AuthenticateUserRequest)
 	if err := dec(in); err != nil {
@@ -316,6 +430,96 @@ func _IdentityService_DeactivateUser_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _IdentityService_AssignUserToOrganizer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AssignUserToOrganizerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityServiceServer).AssignUserToOrganizer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IdentityService_AssignUserToOrganizer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdentityServiceServer).AssignUserToOrganizer(ctx, req.(*AssignUserToOrganizerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IdentityService_CreateOrganizer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateOrganizerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityServiceServer).CreateOrganizer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IdentityService_CreateOrganizer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdentityServiceServer).CreateOrganizer(ctx, req.(*CreateOrganizerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IdentityService_GetOrganizerById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOrganizerByIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityServiceServer).GetOrganizerById(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IdentityService_GetOrganizerById_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdentityServiceServer).GetOrganizerById(ctx, req.(*GetOrganizerByIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IdentityService_ListOrganizers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOrganizersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityServiceServer).ListOrganizers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IdentityService_ListOrganizers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdentityServiceServer).ListOrganizers(ctx, req.(*ListOrganizersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IdentityService_UpdateOrganizer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateOrganizerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityServiceServer).UpdateOrganizer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IdentityService_UpdateOrganizer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdentityServiceServer).UpdateOrganizer(ctx, req.(*UpdateOrganizerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // IdentityService_ServiceDesc is the grpc.ServiceDesc for IdentityService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -336,6 +540,10 @@ var IdentityService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _IdentityService_GetUserByEmail_Handler,
 		},
 		{
+			MethodName: "ListUsers",
+			Handler:    _IdentityService_ListUsers_Handler,
+		},
+		{
 			MethodName: "AuthenticateUser",
 			Handler:    _IdentityService_AuthenticateUser_Handler,
 		},
@@ -350,6 +558,26 @@ var IdentityService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeactivateUser",
 			Handler:    _IdentityService_DeactivateUser_Handler,
+		},
+		{
+			MethodName: "AssignUserToOrganizer",
+			Handler:    _IdentityService_AssignUserToOrganizer_Handler,
+		},
+		{
+			MethodName: "CreateOrganizer",
+			Handler:    _IdentityService_CreateOrganizer_Handler,
+		},
+		{
+			MethodName: "GetOrganizerById",
+			Handler:    _IdentityService_GetOrganizerById_Handler,
+		},
+		{
+			MethodName: "ListOrganizers",
+			Handler:    _IdentityService_ListOrganizers_Handler,
+		},
+		{
+			MethodName: "UpdateOrganizer",
+			Handler:    _IdentityService_UpdateOrganizer_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

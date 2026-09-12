@@ -17,9 +17,10 @@ type User struct {
 	Email        string
 	PasswordHash string
 
-	FullName string
-	Phone    string
-	Role     string
+	FullName    string
+	Phone       string
+	Role        string
+	OrganizerID *uuid.UUID
 
 	IsActive bool
 
